@@ -74,6 +74,7 @@ void MainWindow::saveScene()
 
     QDataStream stream(&file);
     stream.setByteOrder(QDataStream::LittleEndian);
+    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
     //Запись в файл кол-в многоугольников и источников света.
     stream << _obj.size() << _lights.size();
