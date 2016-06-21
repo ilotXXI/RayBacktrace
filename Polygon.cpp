@@ -10,10 +10,10 @@
 #define EPSILON2    0.00000005
 
 //Для многоугольника.
- //Конструктор по умолчанию.
-polygon::polygon()
+polygon::polygon(float x[], float y[], float z[], int n1, float r[],
+                 float g[], float b[], float ks_koeff, int cos_koeff)
 {
-    top = nullptr;
+    ChangePolygon(x, y, z, n1, r, g, b, ks_koeff, cos_koeff);
 }
 
  //Метод для задания многоугольника.
@@ -21,10 +21,9 @@ void polygon::ChangePolygon(float x[], float y[], float z[], int n1, float r[], 
 {
     int i;
     //Запись массива вершин.
-    if (top)
-        delete[] top;
+    top.clear();
     n = n1;
-    top = new point[n];
+    top.resize(n);
     for (i=0; i<n; ++i)
     {
         top[i].x = x[i];
@@ -53,13 +52,6 @@ void polygon::ChangePolygon(float x[], float y[], float z[], int n1, float r[], 
     B /= D;
     C /= D;
     D = -(A * x[0] + B * y[0] + C * z[0]);
-}
-
- //Деструктор.
-polygon::~polygon()
-{
-    delete[] top;
-    top = nullptr;
 }
 
  //Метод для определения, лежит ли точка в многоугольнике, если она лежит на его несущей плоскости.
@@ -409,4 +401,9 @@ void polygon::Colors(float Rka1, float Gka1, float Bka1, float Rkd1, float Gkd1,
         ks = ks1;
     if(n1 >= 0)
         c_p_k = int(n1);
+}
+
+const point &polygon::Vertice(int index) const
+{
+    return top[index];
 }

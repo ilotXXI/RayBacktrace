@@ -1,6 +1,8 @@
 #ifndef POLYGON_H
 #define POLYGON_H
 
+#include <vector>
+
 struct point;
 struct line;
 class spotLight;
@@ -8,13 +10,13 @@ class spotLight;
 class polygon
 {
 private:
-    point *top;               //Массив вершин.
-    float A, B, C, D;         //Коэффициенты уравнения несущей плоскости.
-    int n;                    //Кол-во вершин.
+    std::vector<point>  top;           //Массив вершин.
+    float               A, B, C, D;    //Коэффициенты уравнения несущей плоскости.
+    int                 n;             //Кол-во вершин.
 
 public:
-    polygon();
-    ~polygon();
+    polygon(float x[], float y[], float z[], int n1, float r[], float g[],
+            float b[], float ks_koeff, int cos_koeff);
 
     int c_p_k;  //Степень косинуса для зеркальной составляющей освещённости.
     float Rka, Gka, Bka, Rkd, Gkd, Bkd, ks;     //Коэффициенты поверхности.
@@ -28,9 +30,17 @@ public:
     void GetLine(const line &l, line &r);
     void Colors(float Rka, float Gka, float Bka, float Rkd, float Gkd, float Bkd, float ks, float n);
 
+    int VerticesCount() const;
+    const point & Vertice(int index) const;
+
     //Функции-друзья класса.
     friend float CrossingParameter(line , polygon *, int , int &);
     friend void GetIntensivity(const float &, const float &, const float &, polygon *, const int &, spotLight *, const int &, float &, float &, float &, const int &, const line &l);
- };
+};
+
+inline int polygon::VerticesCount() const
+{
+    return n;
+}
 
 #endif // POLYGON_H

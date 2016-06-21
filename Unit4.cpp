@@ -17,22 +17,22 @@ __fastcall TForm4::TForm4(TComponent* Owner)
 }
 //---------------------------------------------------------------------------
 
-//Ïðè íàæàòèè íà êíîïêó "Îòìåíà.".
+//ÐŸÑ€Ð¸ Ð½Ð°Ð¶Ð°Ñ‚Ð¸Ð¸ Ð½Ð° ÐºÐ½Ð¾Ð¿ÐºÑƒ "ÐžÑ‚Ð¼ÐµÐ½Ð°.".
 void __fastcall TForm4::Button2Click(TObject *Sender)
 {
  Close();
 }
 //---------------------------------------------------------------------------
 
-//Ïðè íàæàòèè íà êíîïêó "Äîáàâèòü.".
+//ÐŸÑ€Ð¸ Ð½Ð°Ð¶Ð°Ñ‚Ð¸Ð¸ Ð½Ð° ÐºÐ½Ð¾Ð¿ÐºÑƒ "Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ.".
 void __fastcall TForm4::Button1Click(TObject *Sender)
 {
  extern spotLight light[];
  extern int nl;
- //Äîáàâëåíèå íîâîãî èñòî÷íèêà ñâåòà.
+ //Ð”Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ð½Ð¾Ð²Ð¾Ð³Ð¾ Ð¸ÑÑ‚Ð¾Ñ‡Ð½Ð¸ÐºÐ° ÑÐ²ÐµÑ‚Ð°.
  light[nl].ChangeSpotLight(StrToFloat(Edit1->Text), StrToFloat(Edit2->Text), StrToFloat(Edit3->Text), StrToFloat(Edit4->Text));
  ++nl;
- //Î÷èñòêà ïîëåé Edit è çàêðûòèå ôîðìû.
+ //ÐžÑ‡Ð¸ÑÑ‚ÐºÐ° Ð¿Ð¾Ð»ÐµÐ¹ Edit Ð¸ Ð·Ð°ÐºÑ€Ñ‹Ñ‚Ð¸Ðµ Ñ„Ð¾Ñ€Ð¼Ñ‹.
  Edit1->Text = "";
  Edit2->Text = "";
  Edit3->Text = "";

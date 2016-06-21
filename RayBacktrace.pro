@@ -11,20 +11,27 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = RayBacktrace
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
-        MainWindow.cpp \
-    Unit1.cpp \
-    Unit2.cpp \
-    Unit3.cpp \
-    Unit4.cpp \
-    Unit5.cpp
+    MainWindow.cpp \
+    Polygon.cpp \
+    SpotLight.cpp \
+    RenderUtilities.cpp
 
 HEADERS  += MainWindow.h \
+    Polygon.h \
+    Point.h \
+    Line.h \
+    SpotLight.h \
+    RenderUtilities.h
+
+FORMS    += MainWindow.ui
+
+DISTFILES += \
+    Unit1.cpp \
+    Unit3.cpp \
+    Unit4.cpp \
+    Unit5.cpp \
     Unit1.h \
-    Unit2.h \
     Unit3.h \
     Unit4.h \
     Unit5.h
-
-FORMS    += MainWindow.ui

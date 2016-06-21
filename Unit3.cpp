@@ -17,7 +17,7 @@ __fastcall TForm3::TForm3(TComponent* Owner)
 }
 //---------------------------------------------------------------------------
 
-//При нажатии на кнопку "Добавить.".
+//РџСЂРё РЅР°Р¶Р°С‚РёРё РЅР° РєРЅРѕРїРєСѓ "Р”РѕР±Р°РІРёС‚СЊ.".
 void __fastcall TForm3::Button1Click(TObject *Sender)
 {
  extern int np;
@@ -25,7 +25,7 @@ void __fastcall TForm3::Button1Click(TObject *Sender)
  int top_n;
  float x[25], y[25], z[25];
  float r[2], g[2], b[2];
- //Считывание параметров для добавляемого многоугольника.
+ //РЎС‡РёС‚С‹РІР°РЅРёРµ РїР°СЂР°РјРµС‚СЂРѕРІ РґР»СЏ РґРѕР±Р°РІР»СЏРµРјРѕРіРѕ РјРЅРѕРіРѕСѓРіРѕР»СЊРЅРёРєР°.
  top_n = 0;
  while (StringGrid1->Cells[0][top_n].Length())
   {
@@ -37,10 +37,10 @@ void __fastcall TForm3::Button1Click(TObject *Sender)
  r[0] = StrToFloat(StringGrid2->Cells[0][0]);  r[1] = StrToFloat(StringGrid2->Cells[1][0]);
  g[0] = StrToFloat(StringGrid2->Cells[0][1]);  g[1] = StrToFloat(StringGrid2->Cells[1][1]);
  b[0] = StrToFloat(StringGrid2->Cells[0][2]);  b[1] = StrToFloat(StringGrid2->Cells[1][2]);
- //Добавление нового многоугольника.
+ //Р”РѕР±Р°РІР»РµРЅРёРµ РЅРѕРІРѕРіРѕ РјРЅРѕРіРѕСѓРіРѕР»СЊРЅРёРєР°.
  obj[np].ChangePolygon(x, y, z, top_n, r, g, b, StrToFloat(Edit1->Text), StrToInt(Edit2->Text));
  ++np;
- //Очистка обработанных таблиц, полей Edit и закрытие формы.
+ //РћС‡РёСЃС‚РєР° РѕР±СЂР°Р±РѕС‚Р°РЅРЅС‹С… С‚Р°Р±Р»РёС†, РїРѕР»РµР№ Edit Рё Р·Р°РєСЂС‹С‚РёРµ С„РѕСЂРјС‹.
  for(--top_n; top_n>=0; --top_n)
   {
    StringGrid1->Cells[0][top_n] = "";
@@ -58,7 +58,7 @@ void __fastcall TForm3::Button1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-//При нажатии на кнопку "Отмена.".
+//РџСЂРё РЅР°Р¶Р°С‚РёРё РЅР° РєРЅРѕРїРєСѓ "РћС‚РјРµРЅР°.".
 void __fastcall TForm3::Button2Click(TObject *Sender)
 {
  Close();

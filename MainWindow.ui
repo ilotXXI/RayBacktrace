@@ -1,24 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow" >
-  <property name="geometry" >
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>908</width>
+    <height>504</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QMenuBar" name="menuBar" />
-  <widget class="QToolBar" name="mainToolBar" />
-  <widget class="QWidget" name="centralWidget" />
-  <widget class="QStatusBar" name="statusBar" />
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QLabel" name="pixmapWidget">
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>908</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="N5"/>
+    <addaction name="N2"/>
+    <addaction name="N3"/>
+    <addaction name="separator"/>
+    <addaction name="N4"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Сцена</string>
+    </property>
+    <addaction name="N7"/>
+    <addaction name="N8"/>
+    <addaction name="N9"/>
+    <addaction name="N10"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_2"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="N5">
+   <property name="text">
+    <string>Новый файл</string>
+   </property>
+  </action>
+  <action name="N2">
+   <property name="text">
+    <string>Записать...</string>
+   </property>
+  </action>
+  <action name="N3">
+   <property name="text">
+    <string>Загрузить...</string>
+   </property>
+  </action>
+  <action name="N4">
+   <property name="text">
+    <string>Выход</string>
+   </property>
+  </action>
+  <action name="N7">
+   <property name="text">
+    <string>Изобразить</string>
+   </property>
+  </action>
+  <action name="N8">
+   <property name="text">
+    <string>Добавить многоугольник...</string>
+   </property>
+  </action>
+  <action name="N9">
+   <property name="text">
+    <string>Добавить источник света...</string>
+   </property>
+  </action>
+  <action name="N10">
+   <property name="text">
+    <string>Преобразовать сцену...</string>
+   </property>
+  </action>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections/>
 </ui>
