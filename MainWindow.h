@@ -11,8 +11,8 @@
 namespace Ui {
 class MainWindow;
 }
-class polygon;
-class spotLight;
+class Polygon;
+class SpotLight;
 
 class MainWindow: public    QMainWindow
 {
@@ -25,8 +25,8 @@ public:
 private:
     QScopedPointer<Ui::MainWindow>  _ui;
 
-    std::vector<polygon>            _obj;
-    std::vector<spotLight>          _lights;
+    std::vector<Polygon>            _obj;
+    std::vector<SpotLight>          _lights;
 
     void setCanvas(const Canvas &canvas);
 
@@ -34,6 +34,8 @@ private slots:
     void newFile();
     void saveScene();
     void loadScene();
+
+    void addPolygon();
 
     void render();
 };

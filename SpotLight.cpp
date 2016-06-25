@@ -3,18 +3,18 @@
 #include <math.h>
 
 //Конструктор по умолчанию.
-spotLight::spotLight()
+SpotLight::SpotLight()
 {
 }
 
-spotLight::spotLight(float x1, float y1, float z1, float I)
+SpotLight::SpotLight(float x1, float y1, float z1, float I)
 {
     ChangeSpotLight(x1, y1, z1, I);
 }
 
 //-----------------------------------------------------------------------------
 //Метод для задания источника света.
-void spotLight::ChangeSpotLight(float x1, float y1, float z1, float I)
+void SpotLight::ChangeSpotLight(float x1, float y1, float z1, float I)
 {
     place.x = x1;
     place.y = y1;
@@ -24,7 +24,7 @@ void spotLight::ChangeSpotLight(float x1, float y1, float z1, float I)
 
 //-----------------------------------------------------------------------------
 //Метод для перемещения источника света.
-void spotLight::Replace(float x1, float y1, float z1)
+void SpotLight::Replace(float x1, float y1, float z1)
 {
     place.x += x1;
     place.y += y1;
@@ -33,7 +33,7 @@ void spotLight::Replace(float x1, float y1, float z1)
 
 //-----------------------------------------------------------------------------
 //Метод для поворота источника света.
-void spotLight::Rotate(float alpha, short axis)
+void SpotLight::Rotate(float alpha, short axis)
 {
     float old, sinAlpha, cosAlpha;
     sinAlpha = sin(alpha);
@@ -57,12 +57,12 @@ void spotLight::Rotate(float alpha, short axis)
     }
 }
 //Метод для изменения интенсивности источника света.
-void spotLight::ChangeIntensivity(float I)
+void SpotLight::ChangeIntensivity(float I)
 {
     intensivity = I;
 }
 
-const point &spotLight::Place() const
+const Point &SpotLight::Place() const
 {
     return place;
 }

@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include "AddPolygonDialog.h"
 #include "Polygon.h"
 #include "SpotLight.h"
 
@@ -22,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_ui->N4, &QAction::triggered, this, &MainWindow::close);
     connect(_ui->N5, &QAction::triggered, this, &MainWindow::newFile);
     connect(_ui->N7, &QAction::triggered, this, &MainWindow::render);
+    connect(_ui->N8, &QAction::triggered, this, &MainWindow::addPolygon);
 }
 
 MainWindow::~MainWindow()
@@ -89,7 +91,7 @@ void MainWindow::saveScene()
         //Запись координат вершин многоугольника.
         for (int vertInd = 0; vertInd < verticesCount; ++vertInd)
         {
-            const point &pnt = polygon.Vertice(vertInd);
+            const Point &pnt = polygon.Vertice(vertInd);
             stream << pnt.x;
             stream << pnt.y;
             stream << pnt.z;
@@ -99,7 +101,7 @@ void MainWindow::saveScene()
     //Запись в файл источников света.
     for (const auto &light: _lights)
     {
-        const point &place = light.Place();
+        const Point &place = light.Place();
         stream << place.x;
         stream << place.y;
         stream << place.z;
@@ -161,6 +163,15 @@ void MainWindow::loadScene()
     {
         stream >> *x >> *y >> *z >> *r;
         _lights.emplace_back(x[0], y[0], z[0], r[0]);
+    }
+}
+
+void MainWindow::addPolygon()
+{
+    AddPolygonDialog dialog(this);
+    const int res = dialog.exec();
+    if (res == QDialog::Accepted) {
+        // TODO
     }
 }
 

@@ -15,16 +15,19 @@ SOURCES += main.cpp\
     MainWindow.cpp \
     Polygon.cpp \
     SpotLight.cpp \
-    RenderUtilities.cpp
+    RenderUtilities.cpp \
+    AddPolygonDialog.cpp
 
 HEADERS  += MainWindow.h \
     Polygon.h \
     Point.h \
     Line.h \
     SpotLight.h \
-    RenderUtilities.h
+    RenderUtilities.h \
+    AddPolygonDialog.h
 
-FORMS    += MainWindow.ui
+FORMS    += MainWindow.ui \
+    AddPolygonDialog.ui
 
 DISTFILES += \
     Unit1.cpp \

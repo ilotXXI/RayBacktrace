@@ -10,14 +10,14 @@
 #define EPSILON2    0.00000005
 
 //Для многоугольника.
-polygon::polygon(float x[], float y[], float z[], int n1, float r[],
+Polygon::Polygon(float x[], float y[], float z[], int n1, float r[],
                  float g[], float b[], float ks_koeff, int cos_koeff)
 {
     ChangePolygon(x, y, z, n1, r, g, b, ks_koeff, cos_koeff);
 }
 
  //Метод для задания многоугольника.
-void polygon::ChangePolygon(float x[], float y[], float z[], int n1, float r[], float g[], float b[], float ks_koeff, int cos_koeff)
+void Polygon::ChangePolygon(float x[], float y[], float z[], int n1, float r[], float g[], float b[], float ks_koeff, int cos_koeff)
 {
     int i;
     //Запись массива вершин.
@@ -55,7 +55,7 @@ void polygon::ChangePolygon(float x[], float y[], float z[], int n1, float r[], 
 }
 
  //Метод для определения, лежит ли точка в многоугольнике, если она лежит на его несущей плоскости.
-char polygon::PointInPolygon(float x, float y, float z)
+char Polygon::PointInPolygon(float x, float y, float z)
 {
     int i, m;
     m = 0;
@@ -225,7 +225,7 @@ char polygon::PointInPolygon(float x, float y, float z)
 }
 
 //Метод для определения, пересекает ли луч сторону многоугольника.
-char polygon::LineCross(float &x, float &y, float &y0, float &x1, float &y1, float &x2, float &y2, float &y3)
+char Polygon::LineCross(float &x, float &y, float &y0, float &x1, float &y1, float &x2, float &y2, float &y3)
 {
     double t, q;
     if (!(x>x1  &&  x>x2))
@@ -279,7 +279,7 @@ char polygon::LineCross(float &x, float &y, float &y0, float &x1, float &y1, flo
 }
 
 //Метод для перемещения многоугольника.
-void polygon::Replace(float x1, float y1, float z1)
+void Polygon::Replace(float x1, float y1, float z1)
 {
     int i;
     for (i=0; i<n; ++i)
@@ -303,7 +303,7 @@ void polygon::Replace(float x1, float y1, float z1)
 }
 
 //Метод для поворота многоугольника.
-void polygon::Rotate(float alpha, short axis)
+void Polygon::Rotate(float alpha, short axis)
 {
     float old, sinAlpha, cosAlpha;
     int i;
@@ -350,7 +350,7 @@ void polygon::Rotate(float alpha, short axis)
 }
 
 //Метод для масштабирования многоугольника.
-void polygon::Scale(float t)
+void Polygon::Scale(float t)
 {
     for (int i=0; i<n; ++i)
     {
@@ -373,7 +373,7 @@ void polygon::Scale(float t)
 }
 
 //Метод для вычисления координат направляющего вектора отражённого луча.
-void polygon::GetLine(const line &l, line &r)
+void Polygon::GetLine(const Line &l, Line &r)
 {
     float q;
     q = l.a * A  +  l.b * B  +  l.c * C;
@@ -383,7 +383,7 @@ void polygon::GetLine(const line &l, line &r)
     r.c = l.c - q*C;    // R = -L + q*n.
 }
 
-void polygon::Colors(float Rka1, float Gka1, float Bka1, float Rkd1, float Gkd1, float Bkd1, float ks1, float n1)
+void Polygon::Colors(float Rka1, float Gka1, float Bka1, float Rkd1, float Gkd1, float Bkd1, float ks1, float n1)
 {
     if(Rka1 >= 0)
         Rka = Rka1;
@@ -403,7 +403,7 @@ void polygon::Colors(float Rka1, float Gka1, float Bka1, float Rkd1, float Gkd1,
         c_p_k = int(n1);
 }
 
-const point &polygon::Vertice(int index) const
+const Point &Polygon::Vertice(int index) const
 {
     return top[index];
 }

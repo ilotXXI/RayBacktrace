@@ -3,31 +3,31 @@
 
 #include "Point.h"
 
-class polygon;
-struct line;
+class Polygon;
+struct Line;
 
-class spotLight
+class SpotLight
 {
  private:
-  point place;          //Координаты источника света.
+  Point place;          //Координаты источника света.
   float intensivity;    //Интенсивность источника света.
 
  public:
-  spotLight();
-  spotLight(float x1, float y1, float z1, float I);
+  SpotLight();
+  SpotLight(float x1, float y1, float z1, float I);
   void ChangeSpotLight(float x1, float y1, float z1, float I);
   void Rotate(float alpha, short axis);
   void Replace(float x1, float y1, float z1);
   void ChangeIntensivity(float I);
 
-  const point & Place() const;
+  const Point & Place() const;
   float Intensivity() const;
 
   //Функции-друзья класса.
-  friend void GetIntensivity(const float &, const float &, const float &, polygon *, const int &, spotLight *, const int &, float &, float &, float &, const int &, const line &l);
+  friend void GetIntensivity(const float &, const float &, const float &, Polygon *, const int &, SpotLight *, const int &, float &, float &, float &, const int &, const Line &l);
 };
 
-inline float spotLight::Intensivity() const
+inline float SpotLight::Intensivity() const
 {
     return intensivity;
 }
