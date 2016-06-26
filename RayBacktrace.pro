@@ -24,7 +24,8 @@ HEADERS  += MainWindow.h \
     Line.h \
     SpotLight.h \
     RenderUtilities.h \
-    AddPolygonDialog.h
+    AddPolygonDialog.h \
+    Rgb.h
 
 FORMS    += MainWindow.ui \
     AddPolygonDialog.ui

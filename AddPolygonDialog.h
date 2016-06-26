@@ -18,12 +18,17 @@ public:
     explicit AddPolygonDialog(QWidget *parent = 0);
     ~AddPolygonDialog();
 
+    Polygon polygon() const;
+
 private:
     Ui::AddPolygonDialog    *_ui;
 
     QStandardItemModel      *_coeffModel;
 
     static QStandardItemModel * createCoeffModel(QObject *parent);
+
+    std::vector<Point> readVertices() const;
+    std::pair<Rgb, Rgb> readRgbs() const;
 
 private slots:
     void addVertice();

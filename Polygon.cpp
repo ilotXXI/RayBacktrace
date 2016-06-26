@@ -5,15 +5,56 @@
 #include "Point.h"
 #include "Line.h"
 #include "SpotLight.h"
+#include "Rgb.h"
 
 #define EPSILON     0.0005
 #define EPSILON2    0.00000005
 
 //Для многоугольника.
+Polygon::Polygon(const std::vector<Point> &vertices, const Rgb &ka,
+                 const Rgb &kd, float ksCoeff, int cosCoeff)
+{
+    ChangePolygon(vertices, ka, kd, ksCoeff, cosCoeff);
+}
+
 Polygon::Polygon(float x[], float y[], float z[], int n1, float r[],
                  float g[], float b[], float ks_koeff, int cos_koeff)
 {
     ChangePolygon(x, y, z, n1, r, g, b, ks_koeff, cos_koeff);
+}
+
+void Polygon::ChangePolygon(const std::vector<Point> &vertices, const Rgb &ka,
+                            const Rgb &kd, float ksCoeff, int cosCoeff)
+{
+    top = vertices;
+    n = top.size();
+
+    //Запись коэффициентов отражения для грани.
+    Rka = ka.red();
+    Gka = ka.green();
+    Bka = ka.blue();
+    Rkd = kd.red();
+    Gkd = kd.green();
+    Bkd = kd.blue();
+
+    ks = ksCoeff;
+    c_p_k = cosCoeff;
+
+    //Вычисление коэффициентов для уравнения несущей плоскости.
+    const float x[] = {top[0].x, top[1].x, top[2].x};
+    const float y[] = {top[0].y, top[1].y, top[2].y};
+    const float z[] = {top[0].z, top[1].z, top[2].z};
+
+    A = (y[1] - y[0]) * (z[2] - z[0]) - (y[2] - y[0]) * (z[1] - z[0]);
+    B = (z[1] - z[0]) * (x[2] - x[0]) - (x[1] - x[0]) * (z[2] - z[0]);
+    C = (x[1] - x[0]) * (y[2] - y[0]) - (y[1] - y[0]) * (x[2] - x[0]);
+
+    //Нормирование вектора нормали.
+    D = sqrt(A * A + B * B + C * C); //D пока используется как промежуточная переменная.
+    A /= D;
+    B /= D;
+    C /= D;
+    D = -(A * x[0] + B * y[0] + C * z[0]);
 }
 
  //Метод для задания многоугольника.

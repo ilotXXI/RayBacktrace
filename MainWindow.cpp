@@ -171,7 +171,7 @@ void MainWindow::addPolygon()
     AddPolygonDialog dialog(this);
     const int res = dialog.exec();
     if (res == QDialog::Accepted) {
-        // TODO
+        _obj.push_back(dialog.polygon());
     }
 }
 

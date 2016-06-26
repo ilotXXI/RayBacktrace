@@ -6,6 +6,7 @@
 struct Point;
 struct Line;
 class SpotLight;
+class Rgb;
 
 class Polygon
 {
@@ -15,11 +16,15 @@ private:
     int                 n;             //Кол-во вершин.
 
 public:
+    Polygon(const std::vector<Point> &vertices, const Rgb &ka, const Rgb &kd,
+            float ksCoeff, int cosCoeff);
     Polygon(float x[], float y[], float z[], int n1, float r[], float g[],
             float b[], float ks_koeff, int cos_koeff);
 
     int c_p_k;  //Степень косинуса для зеркальной составляющей освещённости.
     float Rka, Gka, Bka, Rkd, Gkd, Bkd, ks;     //Коэффициенты поверхности.
+    void ChangePolygon(const std::vector<Point> &vertices, const Rgb &ka,
+                       const Rgb &kd, float ksCoeff, int cosCoeff);
     void ChangePolygon(float x[], float y[], float z[], int n1, float r[], float g[], float b[], float ks_koeff, int cos_koeff);
     char PointInPolygon(float x, float y, float z);
     char LineCross(float &x, float &y, float &y0, float &x1, float &y1, float &x2, float &y2, float &y3);

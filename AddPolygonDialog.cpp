@@ -5,6 +5,9 @@
 
 #include <QStandardItemModel>
 
+#include "Rgb.h"
+#include "Point.h"
+
 AddPolygonDialog::AddPolygonDialog(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::AddPolygonDialog)
@@ -36,6 +39,14 @@ AddPolygonDialog::~AddPolygonDialog()
     delete _ui;
 }
 
+Polygon AddPolygonDialog::polygon() const
+{
+    const std::vector<Point> vertices = readVertices();
+    const std::pair<Rgb, Rgb> rgbs = readRgbs();
+    return Polygon(vertices, rgbs.first, rgbs.second,
+        _ui->ksSpin->value(), _ui->nSpin->value());
+}
+
 QStandardItemModel *AddPolygonDialog::createCoeffModel(QObject *parent)
 {
     QStandardItemModel *model = new QStandardItemModel(parent);
@@ -60,6 +71,38 @@ QStandardItemModel *AddPolygonDialog::createCoeffModel(QObject *parent)
             model->setData(model->index(row, col), 0., Qt::DisplayRole);
 
     return model;
+}
+
+std::vector<Point> AddPolygonDialog::readVertices() const
+{
+    std::vector<Point> vertices;
+    const int verticesCount = _ui->verticesTable->rowCount();
+    vertices.reserve(verticesCount);
+    const QAbstractItemModel *model = _ui->verticesTable->model();
+    const auto extractVal = [model](int row, int col) -> float {
+        return model->data(model->index(row, col), Qt::DisplayRole).toFloat();
+    };
+
+    for (int i = 0; i < verticesCount; ++i) {
+        const float x = extractVal(i, 0);
+        const float y = extractVal(i, 1);
+        const float z = extractVal(i, 2);
+        vertices.emplace_back(x, y, z);
+    }
+
+    return vertices;
+}
+
+std::pair<Rgb, Rgb> AddPolygonDialog::readRgbs() const
+{
+    const auto readColor = [&](int row, int col) -> float {
+        return _coeffModel->data(_coeffModel->index(row, col),
+            Qt::DisplayRole).toFloat();
+    };
+    const Rgb ka(readColor(0, 0), readColor(1, 0), readColor(2, 0));
+    const Rgb kd(readColor(0, 1), readColor(1, 1), readColor(2, 1));
+
+    return std::pair<Rgb, Rgb>(ka, kd);
 }
 
 void AddPolygonDialog::addVertice()
