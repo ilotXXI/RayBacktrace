@@ -18,12 +18,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     _ui->setupUi(this);
 
-    connect(_ui->N2, &QAction::triggered, this, &MainWindow::saveScene);
-    connect(_ui->N3, &QAction::triggered, this, &MainWindow::loadScene);
-    connect(_ui->N4, &QAction::triggered, this, &MainWindow::close);
-    connect(_ui->N5, &QAction::triggered, this, &MainWindow::newFile);
-    connect(_ui->N7, &QAction::triggered, this, &MainWindow::render);
-    connect(_ui->N8, &QAction::triggered, this, &MainWindow::addPolygon);
+    connect(_ui->saveAction, &QAction::triggered, this, &MainWindow::saveScene);
+    connect(_ui->loadAction, &QAction::triggered, this, &MainWindow::loadScene);
+    connect(_ui->quitAction, &QAction::triggered, this, &MainWindow::close);
+    connect(_ui->newFileAction, &QAction::triggered,
+        this, &MainWindow::newFile);
+    connect(_ui->renderAction, &QAction::triggered, this, &MainWindow::render);
+    connect(_ui->addPolygonAction, &QAction::triggered,
+        this, &MainWindow::addPolygon);
 }
 
 MainWindow::~MainWindow()

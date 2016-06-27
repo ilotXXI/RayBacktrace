@@ -49,62 +49,89 @@
     <property name="title">
      <string>Файл</string>
     </property>
-    <addaction name="N5"/>
-    <addaction name="N2"/>
-    <addaction name="N3"/>
+    <addaction name="newFileAction"/>
+    <addaction name="saveAction"/>
+    <addaction name="loadAction"/>
     <addaction name="separator"/>
-    <addaction name="N4"/>
+    <addaction name="quitAction"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
      <string>Сцена</string>
     </property>
-    <addaction name="N7"/>
-    <addaction name="N8"/>
-    <addaction name="N9"/>
-    <addaction name="N10"/>
+    <addaction name="renderAction"/>
+    <addaction name="addPolygonAction"/>
+    <addaction name="addLightAction"/>
+    <addaction name="changeSceneAction"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="N5">
+  <action name="newFileAction">
    <property name="text">
     <string>Новый файл</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
-  <action name="N2">
+  <action name="saveAction">
    <property name="text">
     <string>Записать...</string>
    </property>
+   <property name="toolTip">
+    <string>Записать...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
-  <action name="N3">
+  <action name="loadAction">
    <property name="text">
     <string>Загрузить...</string>
    </property>
+   <property name="toolTip">
+    <string>Загрузить...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
-  <action name="N4">
+  <action name="quitAction">
    <property name="text">
     <string>Выход</string>
    </property>
   </action>
-  <action name="N7">
+  <action name="renderAction">
    <property name="text">
     <string>Изобразить</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
   </action>
-  <action name="N8">
+  <action name="addPolygonAction">
    <property name="text">
     <string>Добавить многоугольник...</string>
    </property>
+   <property name="toolTip">
+    <string>Добавить многоугольник...</string>
+   </property>
   </action>
-  <action name="N9">
+  <action name="addLightAction">
    <property name="text">
     <string>Добавить источник света...</string>
    </property>
+   <property name="toolTip">
+    <string>Добавить источник света...</string>
+   </property>
   </action>
-  <action name="N10">
+  <action name="changeSceneAction">
    <property name="text">
+    <string>Преобразовать сцену...</string>
+   </property>
+   <property name="toolTip">
     <string>Преобразовать сцену...</string>
    </property>
   </action>
