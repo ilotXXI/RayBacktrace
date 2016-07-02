@@ -9,6 +9,7 @@
 #include <QMessageBox>
 
 #include "AddPolygonDialog.h"
+#include "AddLightDialog.h"
 #include "Polygon.h"
 #include "SpotLight.h"
 
@@ -26,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_ui->renderAction, &QAction::triggered, this, &MainWindow::render);
     connect(_ui->addPolygonAction, &QAction::triggered,
         this, &MainWindow::addPolygon);
+    connect(_ui->addLightAction, &QAction::triggered,
+        this, &MainWindow::addLight);
 }
 
 MainWindow::~MainWindow()
@@ -175,6 +178,15 @@ void MainWindow::addPolygon()
     const int res = dialog.exec();
     if (res == QDialog::Accepted) {
         _obj.push_back(dialog.polygon());
+    }
+}
+
+void MainWindow::addLight()
+{
+    AddLightDialog dialog(this);
+    const int res = dialog.exec();
+    if (res == QDialog::Accepted) {
+        _lights.push_back(dialog.light());
     }
 }
 

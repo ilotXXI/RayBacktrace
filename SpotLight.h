@@ -24,7 +24,10 @@ class SpotLight
   float Intensivity() const;
 
   //Функции-друзья класса.
-  friend void GetIntensivity(const float &, const float &, const float &, Polygon *, const int &, SpotLight *, const int &, float &, float &, float &, const int &, const Line &l);
+  friend void GetIntensivity(const float &, const float &, const float &,
+                             Polygon *, const int &, SpotLight *, const int &,
+                             float &, float &, float &, const int &,
+                             const Line &l);
 };
 
 inline float SpotLight::Intensivity() const

@@ -1,14 +1,14 @@
 #include "MainWindow.h"
 #include <QApplication>
 
-//#include "AddPolygonDialog.h"
+//#include "AddLightDialog.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
     MainWindow window;
-    //AddPolygonDialog window;
+//    AddLightDialog window;
     window.show();
 
     return app.exec();

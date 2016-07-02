@@ -36,6 +36,7 @@ private slots:
     void loadScene();
 
     void addPolygon();
+    void addLight();
 
     void render();
 };
