@@ -27,7 +27,6 @@ void Polygon::ChangePolygon(const std::vector<Point> &vertices, const Rgb &ka,
                             const Rgb &kd, float ksCoeff, int cosCoeff)
 {
     top = vertices;
-    n = top.size();
 
     //Запись коэффициентов отражения для грани.
     Rka = ka.red();
@@ -60,12 +59,9 @@ void Polygon::ChangePolygon(const std::vector<Point> &vertices, const Rgb &ka,
  //Метод для задания многоугольника.
 void Polygon::ChangePolygon(float x[], float y[], float z[], int n1, float r[], float g[], float b[], float ks_koeff, int cos_koeff)
 {
-    int i;
     //Запись массива вершин.
-    top.clear();
-    n = n1;
-    top.resize(n);
-    for (i=0; i<n; ++i)
+    top.resize(n1);
+    for (size_t i = 0; i < size_t(n1); ++i)
     {
         top[i].x = x[i];
         top[i].y = y[i];
@@ -103,7 +99,8 @@ char Polygon::PointInPolygon(float x, float y, float z)
     //Определение, на какую плоскость можно спроецировать многоугольник и точку.
     if(fabs(C) > EPSILON)
     {//Если несущая плоскость многоугольника не перпендикулярна плоскости XY, то многоугольник и точку можно спроецировать на неё.
-        switch(LineCross(x, y, top[n-1].y, top[0].x, top[0].y, top[1].x, top[1].y, top[2].y))
+        switch (LineCross(x, y, top.back().y, top.front().x, top.front().y,
+                top[1].x, top[1].y, top[2].y))
         {
         case 1:  //Здесь стоит switch с 2 case'ами, потому что функция LineCross может возвращать также и значение 0, и в этом случае не нужно ничего делать.
           ++m;
@@ -112,11 +109,13 @@ char Polygon::PointInPolygon(float x, float y, float z)
           return 1;
         }
 
+        int n = top.size();
         n -= 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
         for(i=1; i<n; ++i)
         {
             //Проверка, пересекает ли луч очередную сторону.
-            switch(LineCross(x, y, top[i-1].y, top[i].x, top[i].y, top[i+1].x, top[i+1].y, top[i+2].y))
+            switch(LineCross(x, y, top[i-1].y, top[i].x, top[i].y, top[i+1].x,
+                    top[i+1].y, top[i+2].y))
             {
             case 1:
                 ++m;
@@ -129,7 +128,8 @@ char Polygon::PointInPolygon(float x, float y, float z)
 
         //Осталось проверить ещё 2 стороны.
         //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-        switch(LineCross(x, y, top[n-1].y, top[n].x, top[n].y, top[n+1].x, top[n+1].y, top[0].y))
+        switch(LineCross(x, y, top[n-1].y, top[n].x, top[n].y, top[n+1].x,
+                top[n+1].y, top[0].y))
         {
         case 1:
             ++m;
@@ -141,7 +141,8 @@ char Polygon::PointInPolygon(float x, float y, float z)
 
         //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
         ++n;
-        switch(LineCross(x, y, top[n-1].y, top[n].x, top[n].y, top[0].x, top[0].y, top[1].y))
+        switch(LineCross(x, y, top[n-1].y, top[n].x, top[n].y, top[0].x,
+                top[0].y, top[1].y))
         {
         case 1:
           ++m;
@@ -159,7 +160,8 @@ char Polygon::PointInPolygon(float x, float y, float z)
     //Продолжение определения плоскости проецирования.
     if(fabs(B) > EPSILON)
     {//Если несущая плоскость многоугольника перпендикулярна плоскости XY, но не перпендикулярна плоскости XZ, то многоугольник и точку можно спроецировать на XZ.
-        switch(LineCross(x, z, top[n-1].z, top[0].x, top[0].z, top[1].x, top[1].z, top[2].z))
+        switch(LineCross(x, z, top.back().z, top[0].x, top[0].z, top[1].x,
+                top[1].z, top[2].z))
         {
         case 1:
           ++m;
@@ -168,10 +170,11 @@ char Polygon::PointInPolygon(float x, float y, float z)
           return 1;
         }
 
-        n -= 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
+        int n = top.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
         for(i=1; i<n; ++i)
         //Проверка, пересекает ли луч очередную сторону.
-        switch(LineCross(x, z, top[i-1].z, top[i].x, top[i].z, top[i+1].x, top[i+1].z, top[i+2].z))
+        switch(LineCross(x, z, top[i-1].z, top[i].x, top[i].z, top[i+1].x,
+                top[i+1].z, top[i+2].z))
         {
         case 1:
             ++m;
@@ -212,7 +215,8 @@ char Polygon::PointInPolygon(float x, float y, float z)
 
     //Последняя "стадия" определения плоскости проецирования.
     //Если несущая плоскость многоугольника перпендикулярна и плоскости XY, и плоскости XZ, то многоугольник и точку можно спроецировать на YZ.
-    switch(LineCross(y, z, top[n-1].z, top[0].y, top[0].z, top[1].y, top[1].z, top[2].z))
+    switch(LineCross(y, z, top.back().z, top[0].y, top[0].z, top[1].y,
+            top[1].z, top[2].z))
     {
     case 1:
         ++m;
@@ -221,7 +225,7 @@ char Polygon::PointInPolygon(float x, float y, float z)
         return 1;
     }
 
-    n -= 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
+    int n = top.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
     for(i=1; i<n; ++i)
     {
     //Проверка, пересекает ли луч очередную сторону.
@@ -322,12 +326,11 @@ char Polygon::LineCross(float &x, float &y, float &y0, float &x1, float &y1, flo
 //Метод для перемещения многоугольника.
 void Polygon::Replace(float x1, float y1, float z1)
 {
-    int i;
-    for (i=0; i<n; ++i)
+    for (auto &vert: top)
     {
-        top[i].x += x1;
-        top[i].y += y1;
-        top[i].z += z1;
+        vert.x += x1;
+        vert.y += y1;
+        vert.z += z1;
     }
 
     //Перевычисление коэффициентов для уравнения несущей плоскости.
@@ -347,33 +350,32 @@ void Polygon::Replace(float x1, float y1, float z1)
 void Polygon::Rotate(float alpha, short axis)
 {
     float old, sinAlpha, cosAlpha;
-    int i;
     sinAlpha = sin(alpha);
     cosAlpha = cos(alpha);
     switch (axis)
     {
     case 0: //Поворот вокруг оси Ox.
-        for (i=0; i<n; ++i)
+        for (auto &vert:    top)
         {
-          old = top[i].y;
-          top[i].y = cosAlpha * old  -  sinAlpha * top[i].z;
-          top[i].z = sinAlpha * old  +  cosAlpha * top[i].z;
-          }
+            old = vert.y;
+            vert.y = cosAlpha * old  -  sinAlpha * vert.z;
+            vert.z = sinAlpha * old  +  cosAlpha * vert.z;
+        }
         break;
     case 1: //Поворот вокруг оси Oy.
-        for (i=0; i<n; ++i)
+        for (auto &vert:    top)
         {
-          old = top[i].x;
-          top[i].x = cosAlpha * old  +  sinAlpha * top[i].z;
-          top[i].z = -sinAlpha * old  +  cosAlpha * top[i].z;
+          old = vert.x;
+          vert.x = cosAlpha * old  +  sinAlpha * vert.z;
+          vert.z = -sinAlpha * old  +  cosAlpha * vert.z;
         }
         break;
     default: //Поворот вокруг оси Oz.
-        for (i=0; i<n; ++i)
+        for (auto &vert:    top)
         {
-            old = top[i].x;
-            top[i].x = cosAlpha * old  -  sinAlpha * top[i].y;
-            top[i].y = sinAlpha * old  +  cosAlpha * top[i].y;
+            old = vert.x;
+            vert.x = cosAlpha * old  -  sinAlpha * vert.y;
+            vert.y = sinAlpha * old  +  cosAlpha * vert.y;
         }
     }
 
@@ -393,11 +395,11 @@ void Polygon::Rotate(float alpha, short axis)
 //Метод для масштабирования многоугольника.
 void Polygon::Scale(float t)
 {
-    for (int i=0; i<n; ++i)
+    for (auto &vert:    top)
     {
-        top[i].x *= t;
-        top[i].y *= t;
-        top[i].z *= t;
+        vert.x *= t;
+        vert.y *= t;
+        vert.z *= t;
     }
 
     //Перевычисление коэффициентов для уравнения несущей плоскости.
