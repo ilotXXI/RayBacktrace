@@ -13,7 +13,11 @@ class Polygon
 {
 private:
     std::vector<Point>  top;           //Массив вершин.
-    float               A, B, C, D;    //Коэффициенты уравнения несущей плоскости.
+    //Коэффициенты уравнения несущей плоскости.
+    float               A;
+    float               B;
+    float               C;
+    float               D;
 
 public:
     Polygon(const std::vector<Point> &vertices, const Rgb &ka, const Rgb &kd,
@@ -28,13 +32,14 @@ public:
                        const Rgb &kd, float ksCoeff, int cosCoeff);
     void ChangePolygon(float x[], float y[], float z[], int n1, float r[],
                        float g[], float b[], float ks_koeff, int cos_koeff);
-    char PointInPolygon(float x, float y, float z);
-    char LineCross(float &x, float &y, float &y0, float &x1, float &y1,
-                   float &x2, float &y2, float &y3);
+    char PointInPolygon(float x, float y, float z) const;
+    char LineCross(const float &x, const float &y, const float &y0,
+                   const float &x1, const float &y1, const float &x2,
+                   const float &y2, const float &y3) const;
     void Rotate(float alpha, short axis);
     void Replace(float x1, float y1, float z1);
     void Scale(float t);
-    void GetLine(const Line &l, Line &r);
+    void GetLine(const Line &l, Line &r) const;
     void Colors(float Rka, float Gka, float Bka, float Rkd, float Gkd,
                 float Bkd, float ks, float n);
 
@@ -43,11 +48,36 @@ public:
 
     //Функции-друзья класса.
     friend float CrossingParameter(Line , Polygon *, int , int &);
-    friend void GetIntensivity(const float &, const float &, const float &,
-                               Polygon *, const int &, SpotLight *,
-                               const int &, float &, float &, float &,
-                               const int &, const Line &l);
+//    friend void GetIntensivity(const float &, const float &, const float &,
+//                               Polygon *, const int &, SpotLight *,
+//                               const int &, float &, float &, float &,
+//                               const int &, const Line &l);
+    float getA() const;
+    float getB() const;
+    float getC() const;
+    float getD() const;
 };
+
+
+inline float Polygon::getA() const
+{
+    return A;
+}
+
+inline float Polygon::getB() const
+{
+    return B;
+}
+
+inline float Polygon::getC() const
+{
+    return C;
+}
+
+inline float Polygon::getD() const
+{
+    return D;
+}
 
 inline int Polygon::VerticesCount() const
 {

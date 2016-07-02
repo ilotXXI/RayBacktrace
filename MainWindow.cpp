@@ -57,14 +57,14 @@ void MainWindow::setCanvas(const Canvas &canvas)
 
 void MainWindow::newFile()
 {
-    _obj.clear();
-    _lights.clear();
+    _scene.clear();
 }
 
-void MainWindow::saveScene()
+void MainWindow::saveScene() const
 {
     const QString path =
-        QFileDialog::getSaveFileName(this, "Записать в файл...");
+        QFileDialog::getSaveFileName(const_cast<MainWindow *>(this),
+        "Записать в файл...");
     if(path.isEmpty())
         return;
 
@@ -72,7 +72,7 @@ void MainWindow::saveScene()
     QFile file(path);
     const bool isOpen = file.open(QIODevice::WriteOnly);
     if (!isOpen) {
-        QMessageBox::warning(this, tr("Запись сцены"),
+        QMessageBox::warning(const_cast<MainWindow *>(this), tr("Запись сцены"),
             tr("Невозможно открыть файл\n\"%1\"").arg(path));
         return;
     }
@@ -82,10 +82,12 @@ void MainWindow::saveScene()
     stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
     //Запись в файл кол-в многоугольников и источников света.
-    stream << _obj.size() << _lights.size();
+    const std::vector<Polygon> &polygons = _scene.polygons();
+    const std::vector<SpotLight> &lights = _scene.lights();
+    stream << polygons.size() << lights.size();
 
     //Запись в файл многоугольников.
-    for (const auto &polygon:    _obj)
+    for (const auto &polygon:    polygons)
     {
         const int verticesCount = polygon.VerticesCount();
 
@@ -105,7 +107,7 @@ void MainWindow::saveScene()
     }
 
     //Запись в файл источников света.
-    for (const auto &light: _lights)
+    for (const auto &light: lights)
     {
         const Point &place = light.Place();
         stream << place.x;
@@ -139,7 +141,7 @@ void MainWindow::loadScene()
     int c_p_k = 0;
     int top_n = 0;
 
-    _obj.clear();
+    _scene.clear();
 
     //Считывание кол-в многоугольников и источников света.
     int np = 0;
@@ -148,7 +150,8 @@ void MainWindow::loadScene()
     stream >> nl;
 
     //Чтение многоугольников.
-    _obj.clear();
+    std::vector<Polygon> polygons;
+    polygons.reserve(np);
     for(int i = 0; i < np; ++i) {
         //Считывание коэффициентов и кол-ва вершин очередного многоугольника.
         stream >> r[0] >> g[0] >> b[0];
@@ -160,16 +163,20 @@ void MainWindow::loadScene()
             stream >> x[j] >> y[j] >> z[j];
 
         //"Добавление" (т.е. изменение) очередного многоугольника.
-        _obj.emplace_back(x, y, z, top_n, r, g, b, ks, c_p_k);
+        polygons.emplace_back(x, y, z, top_n, r, g, b, ks, c_p_k);
     }
 
     //Чтение источников света.
-    _lights.clear();
+    std::vector<SpotLight> lights;
+    lights.reserve(nl);
     for(int i = 0; i < nl; ++i)
     {
         stream >> *x >> *y >> *z >> *r;
-        _lights.emplace_back(x[0], y[0], z[0], r[0]);
+        lights.emplace_back(x[0], y[0], z[0], r[0]);
     }
+
+    _scene.setPolygons(std::move(polygons));
+    _scene.setLights(std::move(lights));
 }
 
 void MainWindow::addPolygon()
@@ -177,7 +184,7 @@ void MainWindow::addPolygon()
     AddPolygonDialog dialog(this);
     const int res = dialog.exec();
     if (res == QDialog::Accepted) {
-        _obj.push_back(dialog.polygon());
+        _scene.addPolygon(dialog.polygon());
     }
 }
 
@@ -186,7 +193,7 @@ void MainWindow::addLight()
     AddLightDialog dialog(this);
     const int res = dialog.exec();
     if (res == QDialog::Accepted) {
-        _lights.push_back(dialog.light());
+        _scene.addLight(dialog.light());
     }
 }
 
@@ -198,7 +205,9 @@ void MainWindow::render()
     const QWidget *display = _ui->pixmapWidget;
     Canvas canvas(display->width(),
         std::vector<QColor>(display->height(), Qt::black));
-    Draw(canvas, _obj.data(), _obj.size(), _lights.data(), _lights.size());
+    const std::vector<Polygon> &pol = _scene.polygons();
+    const std::vector<SpotLight> &lights = _scene.lights();
+    Draw(canvas, pol.data(), pol.size(), lights.data(), lights.size());
 
     const float drawingTime = float(timer.elapsed()) * 0.001;
     statusBar()->showMessage(tr("%1 секунд").arg(drawingTime));

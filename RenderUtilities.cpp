@@ -15,6 +15,11 @@
 #define B_KOEFFICIENT         0.001
 #define MAX_LOOKED_LINES_CNT  20
 
+void GetIntensivity(const float &x, const float &y, const float &z,
+                    const Polygon *obj, const int &np, const SpotLight *light,
+                    const int &nl, float &R, float &G, float &B,
+                    const int &cross_pol_n, const Line &l);
+
 //Функция вычисления натуральной степени числа.
 float Raise(float x, const int &n)
 {
@@ -26,7 +31,8 @@ float Raise(float x, const int &n)
 }
 
 //Реализация метода трассировки лучей.
-void Draw(Canvas &display, Polygon obj[], int np, SpotLight light[], int nl)
+void Draw(Canvas &display, const Polygon *obj, int np,
+          const SpotLight *light, int nl)
 {
     float R, G, B;
     Line l;
@@ -67,7 +73,8 @@ void Draw(Canvas &display, Polygon obj[], int np, SpotLight light[], int nl)
 }
 
 //Процедура трассировки одного луча.
-void Trace(Line &l, Polygon *obj, int np, SpotLight *light, int nl, float &R, float &G, float &B, short &looked_lines)
+void Trace(Line &l, const Polygon *obj, int np, const SpotLight *light,
+           int nl, float &R, float &G, float &B, short &looked_lines)
 {
     float t, d;
     Line r, p;
@@ -148,20 +155,22 @@ void Trace(Line &l, Polygon *obj, int np, SpotLight *light, int nl, float &R, fl
 }
 
 //Функция определения параметра и номера для пересечения луча с многоугольником.
-float CrossingParameter(Line l, Polygon *obj, int np, int &cross_pol_n)
+float CrossingParameter(Line l, const Polygon *obj, int np, int &cross_pol_n)
 {
     int i;
     float t, tmin;
     tmin = float(INT_MAX);
     for (i=0; i<np; ++i)
     {
-        t = obj[i].A * l.a  +  obj[i].B * l.b  +  obj[i].C * l.c;
+        t = obj[i].getA() * l.a  +  obj[i].getB() * l.b  +  obj[i].getC() * l.c;
         if (t != 0)
         {
-            t = -(obj[i].A * l.x0  +  obj[i].B * l.y0  +  obj[i].C * l.z0  +  obj[i].D)/t;
+            t = - (obj[i].getA() * l.x0  +  obj[i].getB() * l.y0  +
+                obj[i].getC() * l.z0  +  obj[i].getD()) / t;
             if (t > EPSILON  &&  t < tmin)  //Если найдено пересечение с несущей плоскостью, и оно ближе остальных найденных на данный момент пересечений.
                 //+Уточнение, пересекает ли луч многоугольник.
-                if (obj[i].PointInPolygon(l.x0 + l.a*t,  l.y0 + l.b*t,  l.z0 + l.c*t))
+                if (obj[i].PointInPolygon(l.x0 + l.a*t,
+                        l.y0 + l.b*t, l.z0 + l.c*t))
                 {
                     tmin = t;
                     cross_pol_n = i;
@@ -175,7 +184,10 @@ float CrossingParameter(Line l, Polygon *obj, int np, int &cross_pol_n)
 }
 
 //Функция вычисления непосредственной освещённости.
-void GetIntensivity(const float &x, const float &y, const float &z, Polygon *obj, const int &np, SpotLight *light, const int &nl, float &R, float &G, float &B, const int &cross_pol_n, const Line &l)
+void GetIntensivity(const float &x, const float &y, const float &z,
+                    const Polygon *obj, const int &np, const SpotLight *light,
+                    const int &nl, float &R, float &G, float &B,
+                    const int &cross_pol_n, const Line &l)
 {
     char flag;
     Line line_to_light;
@@ -192,20 +204,27 @@ void GetIntensivity(const float &x, const float &y, const float &z, Polygon *obj
     for (i=0; i<nl; ++i)          //Перебор источников света.
     {
         //формирование луча от рассматриваемой точки до источника света.
-        line_to_light.a = light[i].place.x - x;
-        line_to_light.b = light[i].place.y - y;
-        line_to_light.c = light[i].place.z - z;
+        line_to_light.a = light[i].x() - x;
+        line_to_light.b = light[i].y() - y;
+        line_to_light.c = light[i].z() - z;
         //Поиск пересечения луча с другими объектами сцены.
         flag = 1;
         for (j=0; j<cross_pol_n; ++j)       //Перебор многоугольников.
         {
-            t = obj[j].A * line_to_light.a  +  obj[j].B * line_to_light.b  +  obj[j].C * line_to_light.c;
+            t = obj[j].getA() * line_to_light.a  +
+                obj[j].getB() * line_to_light.b  +
+                obj[j].getC() * line_to_light.c;
             if (t != 0)
             {
-                t = -(obj[j].A * line_to_light.x0  +  obj[j].B * line_to_light.y0  +  obj[j].C * line_to_light.z0  +  obj[j].D)/t;
+                t = -(obj[j].getA() * line_to_light.x0  +
+                    obj[j].getB() * line_to_light.y0  +
+                    obj[j].getC() * line_to_light.z0  +  obj[j].getD())/t;
                 if (t > EPSILON  &&  t < 1)      // ~t>0.
                     //+Уточнение, пересекает ли луч многоугольник.
-                    if (obj[j].PointInPolygon(line_to_light.x0 + line_to_light.a*t,  line_to_light.y0 + line_to_light.b*t,  line_to_light.z0 + line_to_light.c*t))
+                    if (obj[j].PointInPolygon(
+                            line_to_light.x0 + line_to_light.a*t,
+                            line_to_light.y0 + line_to_light.b*t,
+                            line_to_light.z0 + line_to_light.c*t))
                     {
                         flag = 0;
                         break;
@@ -215,10 +234,14 @@ void GetIntensivity(const float &x, const float &y, const float &z, Polygon *obj
         if (flag)
             for (++j; j<np; ++j)              //Перебор оставшихся многоугольников.
             {
-                t = obj[j].A * line_to_light.a  +  obj[j].B * line_to_light.b  +  obj[j].C * line_to_light.c;
+                t = obj[j].getA() * line_to_light.a  +
+                    obj[j].getB() * line_to_light.b  +
+                    obj[j].getC() * line_to_light.c;
                 if (t != 0)
                 {
-                    t = -(obj[j].A * line_to_light.x0  +  obj[j].B * line_to_light.y0  +  obj[j].C * line_to_light.z0  +  obj[j].D)/t;
+                    t = -(obj[j].getA() * line_to_light.x0  +
+                        obj[j].getB() * line_to_light.y0  +
+                        obj[j].getC() * line_to_light.z0  +  obj[j].getD())/t;
                     if (t > EPSILON  &&  t < 1)      // ~t>0.
                         //+Уточнение, пересекает ли луч многоугольник.
                         if (obj[j].PointInPolygon(line_to_light.x0 + line_to_light.a*t,  line_to_light.y0 + line_to_light.b*t,  line_to_light.z0 + line_to_light.c*t))
@@ -234,12 +257,20 @@ void GetIntensivity(const float &x, const float &y, const float &z, Polygon *obj
         {
             //Поиск косинуса угла между нормалью к многоугольнику и лучём.
             //Норму line_to_light пока запомним в cosA, т.к. она нам понадобится.
-            cosA = sqrt(line_to_light.a*line_to_light.a + line_to_light.b*line_to_light.b + line_to_light.c*line_to_light.c);
-            cosT = obj[cross_pol_n].A * line_to_light.a  +  obj[cross_pol_n].B * line_to_light.b  +  obj[cross_pol_n].C * line_to_light.c;
-            cosT /= sqrt(obj[cross_pol_n].A*obj[cross_pol_n].A + obj[cross_pol_n].B*obj[cross_pol_n].B + obj[cross_pol_n].C*obj[cross_pol_n].C)  *  cosA;
+            cosA = sqrt(line_to_light.a*line_to_light.a +
+                line_to_light.b*line_to_light.b +
+                line_to_light.c*line_to_light.c);
+            cosT = obj[cross_pol_n].getA() * line_to_light.a  +
+                obj[cross_pol_n].getB() * line_to_light.b  +
+                obj[cross_pol_n].getC() * line_to_light.c;
+            cosT /= sqrt(obj[cross_pol_n].getA()*obj[cross_pol_n].getA() +
+                obj[cross_pol_n].getB()*obj[cross_pol_n].getB() +
+                obj[cross_pol_n].getC()*obj[cross_pol_n].getC())  *  cosA;
             //Вычисление освещённости диффузионно отражённого света от i-го источника.
-            d = sqrt(line_to_light.a*line_to_light.a + line_to_light.b*line_to_light.b + line_to_light.c*line_to_light.c);
-            t = cosT * light[i].intensivity / (d + K_KOEFFICIENT);
+            d = sqrt(line_to_light.a*line_to_light.a +
+                line_to_light.b*line_to_light.b +
+                line_to_light.c*line_to_light.c);
+            t = cosT * light[i].Intensivity() / (d + K_KOEFFICIENT);
             R += obj[cross_pol_n].Rkd * t;
             G += obj[cross_pol_n].Gkd * t;
             B += obj[cross_pol_n].Bkd * t;
@@ -250,13 +281,15 @@ void GetIntensivity(const float &x, const float &y, const float &z, Polygon *obj
             line_to_light.c /= cosA;
             //Формирование направляющего вектора луча, зеркально отражённого от line_to_light.
             cosT += cosT;
-            line_to_light.a = cosT * obj[cross_pol_n].A  -  line_to_light.a;
-            line_to_light.b = cosT * obj[cross_pol_n].B  -  line_to_light.b;
-            line_to_light.c = cosT * obj[cross_pol_n].C  -  line_to_light.c;
+            line_to_light.a = cosT * obj[cross_pol_n].getA()  -  line_to_light.a;
+            line_to_light.b = cosT * obj[cross_pol_n].getB()  -  line_to_light.b;
+            line_to_light.c = cosT * obj[cross_pol_n].getC()  -  line_to_light.c;
             //Вычисление косинуса угла между отражённым лучом и исходным лучом l.
-            cosA = l.a * line_to_light.a  +  l.b * line_to_light.b  +  l.c * line_to_light.c;
+            cosA = l.a * line_to_light.a  +  l.b * line_to_light.b  +
+                l.c * line_to_light.c;
             //Вычисление освещённости зеркально отражённого света.
-            cosA = Raise(fabs(cosA), obj[cross_pol_n].c_p_k)  *  obj[cross_pol_n].ks  *  light[i].intensivity  /  (d + K_KOEFFICIENT);
+            cosA = Raise(fabs(cosA), obj[cross_pol_n].c_p_k) *
+                obj[cross_pol_n].ks * light[i].Intensivity() / (d + K_KOEFFICIENT);
             R += cosA;
             G += cosA;
             B += cosA;

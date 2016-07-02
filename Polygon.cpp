@@ -92,7 +92,7 @@ void Polygon::ChangePolygon(float x[], float y[], float z[], int n1, float r[], 
 }
 
  //Метод для определения, лежит ли точка в многоугольнике, если она лежит на его несущей плоскости.
-char Polygon::PointInPolygon(float x, float y, float z)
+char Polygon::PointInPolygon(float x, float y, float z) const
 {
     int i, m;
     m = 0;
@@ -270,7 +270,9 @@ char Polygon::PointInPolygon(float x, float y, float z)
 }
 
 //Метод для определения, пересекает ли луч сторону многоугольника.
-char Polygon::LineCross(float &x, float &y, float &y0, float &x1, float &y1, float &x2, float &y2, float &y3)
+char Polygon::LineCross(const float &x, const float &y, const float &y0,
+                        const float &x1, const float &y1, const float &x2,
+                        const float &y2, const float &y3) const
 {
     double t, q;
     if (!(x>x1  &&  x>x2))
@@ -416,7 +418,7 @@ void Polygon::Scale(float t)
 }
 
 //Метод для вычисления координат направляющего вектора отражённого луча.
-void Polygon::GetLine(const Line &l, Line &r)
+void Polygon::GetLine(const Line &l, Line &r) const
 {
     float q;
     q = l.a * A  +  l.b * B  +  l.c * C;

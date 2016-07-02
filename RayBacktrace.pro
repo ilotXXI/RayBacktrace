@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     SpotLight.cpp \
     RenderUtilities.cpp \
     AddPolygonDialog.cpp \
-    AddLightDialog.cpp
+    AddLightDialog.cpp \
+    Scene.cpp
 
 HEADERS  += MainWindow.h \
     Polygon.h \
@@ -27,7 +28,8 @@ HEADERS  += MainWindow.h \
     RenderUtilities.h \
     AddPolygonDialog.h \
     Rgb.h \
-    AddLightDialog.h
+    AddLightDialog.h \
+    Scene.h
 
 FORMS    += MainWindow.ui \
     AddPolygonDialog.ui \

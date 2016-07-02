@@ -1,12 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <vector>
-
 #include <QMainWindow>
 #include <QScopedPointer>
 
 #include "RenderUtilities.h"
+#include "Scene.h"
 
 namespace Ui {
 class MainWindow;
@@ -25,14 +24,13 @@ public:
 private:
     QScopedPointer<Ui::MainWindow>  _ui;
 
-    std::vector<Polygon>            _obj;
-    std::vector<SpotLight>          _lights;
+    Scene                           _scene;
 
     void setCanvas(const Canvas &canvas);
 
 private slots:
     void newFile();
-    void saveScene();
+    void saveScene() const;
     void loadScene();
 
     void addPolygon();

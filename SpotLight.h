@@ -9,8 +9,8 @@ struct Line;
 class SpotLight
 {
  private:
-  Point place;          //Координаты источника света.
-  float intensivity;    //Интенсивность источника света.
+  Point _place;          //Координаты источника света.
+  float _intensivity;    //Интенсивность источника света.
 
  public:
   SpotLight();
@@ -23,16 +23,40 @@ class SpotLight
   const Point & Place() const;
   float Intensivity() const;
 
+  float x() const;
+  float y() const;
+  float z() const;
+
   //Функции-друзья класса.
-  friend void GetIntensivity(const float &, const float &, const float &,
-                             Polygon *, const int &, SpotLight *, const int &,
-                             float &, float &, float &, const int &,
-                             const Line &l);
+//  friend void GetIntensivity(const float &, const float &, const float &,
+//                             Polygon *, const int &, SpotLight *, const int &,
+//                             float &, float &, float &, const int &,
+//                             const Line &l);
 };
+
+inline const Point &SpotLight::Place() const
+{
+    return _place;
+}
 
 inline float SpotLight::Intensivity() const
 {
-    return intensivity;
+    return _intensivity;
+}
+
+inline float SpotLight::x() const
+{
+    return _place.x;
+}
+
+inline float SpotLight::y() const
+{
+    return _place.y;
+}
+
+inline float SpotLight::z() const
+{
+    return _place.z;
 }
 
 #endif // SPOTLIGHT_H
