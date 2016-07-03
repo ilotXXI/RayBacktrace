@@ -62,7 +62,7 @@
     <addaction name="renderAction"/>
     <addaction name="addPolygonAction"/>
     <addaction name="addLightAction"/>
-    <addaction name="changeSceneAction"/>
+    <addaction name="editSceneAction"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -127,7 +127,7 @@
     <string>Добавить источник света...</string>
    </property>
   </action>
-  <action name="changeSceneAction">
+  <action name="editSceneAction">
    <property name="text">
     <string>Преобразовать сцену...</string>
    </property>

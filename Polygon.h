@@ -4,10 +4,10 @@
 #include <vector>
 
 #include "Point.h"
+#include "Rgb.h"
 
 struct Line;
 class SpotLight;
-class Rgb;
 
 class Polygon
 {
@@ -43,6 +43,9 @@ public:
     void Colors(float Rka, float Gka, float Bka, float Rkd, float Gkd,
                 float Bkd, float ks, float n);
 
+    Rgb KaColor() const;
+    Rgb KdColor() const;
+
     int VerticesCount() const;
     const Point & Vertice(int index) const;
 
@@ -56,6 +59,9 @@ public:
     float getB() const;
     float getC() const;
     float getD() const;
+
+    float getKs() const;
+    int cosPower() const;
 };
 
 
@@ -77,6 +83,26 @@ inline float Polygon::getC() const
 inline float Polygon::getD() const
 {
     return D;
+}
+
+inline float Polygon::getKs() const
+{
+    return ks;
+}
+
+inline int Polygon::cosPower() const
+{
+    return c_p_k;
+}
+
+inline Rgb Polygon::KaColor() const
+{
+    return Rgb(Rka, Gka, Bka);
+}
+
+inline Rgb Polygon::KdColor() const
+{
+    return Rgb(Rkd, Gkd, Bkd);
 }
 
 inline int Polygon::VerticesCount() const

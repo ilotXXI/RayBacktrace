@@ -15,11 +15,13 @@ public:
     void setPolygons(const std::vector<Polygon> &polygons);
     void addPolygon(const Polygon &polygon);
     void addPolygon(Polygon &&polygon);
+    size_t polygonsCount() const;
 
     const std::vector<SpotLight> & lights() const;
     void setLights(const std::vector<SpotLight> &lights);
     void addLight(const SpotLight &light);
     void addLight(SpotLight &&light);
+    size_t lightsCount() const;
 
     void clear();
 
@@ -44,6 +46,11 @@ inline void Scene::addPolygon(Polygon &&polygon)
     _polygons.emplace_back(std::move(polygon));
 }
 
+inline size_t Scene::polygonsCount() const
+{
+    return _polygons.size();
+}
+
 inline const std::vector<SpotLight> & Scene::lights() const
 {
     return _lights;
@@ -57,6 +64,11 @@ inline void Scene::addLight(const SpotLight &light)
 inline void Scene::addLight(SpotLight &&light)
 {
     _lights.emplace_back(std::move(light));
+}
+
+inline size_t Scene::lightsCount() const
+{
+    return _lights.size();
 }
 
 #endif // SCENE_H

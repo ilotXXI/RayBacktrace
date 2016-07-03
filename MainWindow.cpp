@@ -12,6 +12,7 @@
 #include "AddLightDialog.h"
 #include "Polygon.h"
 #include "SpotLight.h"
+#include "EditSceneDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -29,6 +30,8 @@ MainWindow::MainWindow(QWidget *parent)
         this, &MainWindow::addPolygon);
     connect(_ui->addLightAction, &QAction::triggered,
         this, &MainWindow::addLight);
+    connect(_ui->editSceneAction, &QAction::triggered,
+        this, &MainWindow::editScene);
 }
 
 MainWindow::~MainWindow()
@@ -194,6 +197,15 @@ void MainWindow::addLight()
     const int res = dialog.exec();
     if (res == QDialog::Accepted) {
         _scene.addLight(dialog.light());
+    }
+}
+
+void MainWindow::editScene()
+{
+    EditSceneDialog dialog(_scene, this);
+    const int res = dialog.exec();
+    if (res == QDialog::Accepted) {
+        // TODO
     }
 }
 

@@ -18,7 +18,9 @@ SOURCES += main.cpp\
     RenderUtilities.cpp \
     AddPolygonDialog.cpp \
     AddLightDialog.cpp \
-    Scene.cpp
+    Scene.cpp \
+    EditSceneDialog.cpp \
+    PolygonsTable.cpp
 
 HEADERS  += MainWindow.h \
     Polygon.h \
@@ -29,11 +31,14 @@ HEADERS  += MainWindow.h \
     AddPolygonDialog.h \
     Rgb.h \
     AddLightDialog.h \
-    Scene.h
+    Scene.h \
+    EditSceneDialog.h \
+    PolygonsTable.h
 
 FORMS    += MainWindow.ui \
     AddPolygonDialog.ui \
-    AddLightDialog.ui
+    AddLightDialog.ui \
+    EditSceneDialog.ui
 
 DISTFILES += \
     Unit1.cpp \
