@@ -10,6 +10,8 @@ class Scene
 {
 public:
     Scene();
+    Scene(const std::vector<Polygon> &polygons,
+          const std::vector<SpotLight> &lights);
 
     const std::vector<Polygon> & polygons() const;
     void setPolygons(const std::vector<Polygon> &polygons);

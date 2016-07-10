@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     AddLightDialog.cpp \
     Scene.cpp \
     EditSceneDialog.cpp \
-    PolygonsTable.cpp
+    PolygonsTable.cpp \
+    Delegate.cpp
 
 HEADERS  += MainWindow.h \
     Polygon.h \
@@ -33,7 +34,8 @@ HEADERS  += MainWindow.h \
     AddLightDialog.h \
     Scene.h \
     EditSceneDialog.h \
-    PolygonsTable.h
+    PolygonsTable.h \
+    Delegate.h
 
 FORMS    += MainWindow.ui \
     AddPolygonDialog.ui \

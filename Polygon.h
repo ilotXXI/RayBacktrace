@@ -44,7 +44,9 @@ public:
                 float Bkd, float ks, float n);
 
     Rgb KaColor() const;
+    void SetKaColor(const Rgb &value);
     Rgb KdColor() const;
+    void SetKdColor(const Rgb &value);
 
     int VerticesCount() const;
     const Point & Vertice(int index) const;
@@ -55,44 +57,56 @@ public:
 //                               Polygon *, const int &, SpotLight *,
 //                               const int &, float &, float &, float &,
 //                               const int &, const Line &l);
-    float getA() const;
-    float getB() const;
-    float getC() const;
-    float getD() const;
+    float GetA() const;
+    float GetB() const;
+    float GetC() const;
+    float GetD() const;
 
-    float getKs() const;
-    int cosPower() const;
+    float GetKs() const;
+    void SetKs(float value);
+    int CosPower() const;
+    void SetCosPower(int value);
 };
 
 
-inline float Polygon::getA() const
+inline float Polygon::GetA() const
 {
     return A;
 }
 
-inline float Polygon::getB() const
+inline float Polygon::GetB() const
 {
     return B;
 }
 
-inline float Polygon::getC() const
+inline float Polygon::GetC() const
 {
     return C;
 }
 
-inline float Polygon::getD() const
+inline float Polygon::GetD() const
 {
     return D;
 }
 
-inline float Polygon::getKs() const
+inline float Polygon::GetKs() const
 {
     return ks;
 }
 
-inline int Polygon::cosPower() const
+inline int Polygon::CosPower() const
 {
     return c_p_k;
+}
+
+inline void Polygon::SetCosPower(int value)
+{
+    c_p_k = value;
+}
+
+inline void Polygon::SetKs(float value)
+{
+    ks = value;
 }
 
 inline Rgb Polygon::KaColor() const
@@ -100,9 +114,23 @@ inline Rgb Polygon::KaColor() const
     return Rgb(Rka, Gka, Bka);
 }
 
+inline void Polygon::SetKaColor(const Rgb &value)
+{
+    Rka = value.red();
+    Gka = value.green();
+    Bka = value.blue();
+}
+
 inline Rgb Polygon::KdColor() const
 {
     return Rgb(Rkd, Gkd, Bkd);
+}
+
+inline void Polygon::SetKdColor(const Rgb &value)
+{
+    Rkd = value.red();
+    Gkd = value.green();
+    Bkd = value.blue();
 }
 
 inline int Polygon::VerticesCount() const

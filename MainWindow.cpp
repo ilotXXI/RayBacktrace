@@ -205,7 +205,7 @@ void MainWindow::editScene()
     EditSceneDialog dialog(_scene, this);
     const int res = dialog.exec();
     if (res == QDialog::Accepted) {
-        // TODO
+        _scene = dialog.scene();
     }
 }
 

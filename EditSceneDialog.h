@@ -8,6 +8,8 @@
 namespace Ui {
 class EditSceneDialog;
 }
+class PolygonsTable;
+
 
 class EditSceneDialog : public QDialog
 {
@@ -17,8 +19,13 @@ public:
     explicit EditSceneDialog(const Scene &initialScene, QWidget *parent = 0);
     ~EditSceneDialog();
 
+    Scene scene() const;
+
 private:
-    Ui::EditSceneDialog *_ui;
+    Ui::EditSceneDialog     *_ui;
+
+    PolygonsTable           *_polTable;
+    std::vector<SpotLight>  _lights;
 };
 
 #endif // EDITSCENEDIALOG_H
