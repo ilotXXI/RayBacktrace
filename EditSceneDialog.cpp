@@ -2,18 +2,21 @@
 #include "ui_EditSceneDialog.h"
 
 #include "PolygonsTable.h"
+#include "LightsTable.h"
 #include "Delegate.h"
 
 EditSceneDialog::EditSceneDialog(const Scene &initialScene, QWidget *parent)
     : QDialog(parent)
     , _ui(new Ui::EditSceneDialog)
-    , _lights(initialScene.lights())
 {
     _ui->setupUi(this);
 
     _polTable = new PolygonsTable(initialScene.polygons(), this);
     _ui->polygonsView->setModel(_polTable);
     _ui->polygonsView->setItemDelegate(new Delegate(this));
+
+    _lightsTable = new LightsTable(initialScene.lights(), this);
+    _ui->lightsView->setModel(_lightsTable);
 
     connect(_ui->buttonBox, &QDialogButtonBox::accepted,
         this, &QDialog::accept);
@@ -24,9 +27,14 @@ EditSceneDialog::EditSceneDialog(const Scene &initialScene, QWidget *parent)
 EditSceneDialog::~EditSceneDialog()
 {
     delete _ui;
+    _ui = nullptr;
+    delete _polTable;
+    _polTable = nullptr;
+    delete _lightsTable;
+    _lightsTable = nullptr;
 }
 
 Scene EditSceneDialog::scene() const
 {
-    return Scene(_polTable->polygons(), _lights);
+    return Scene(_polTable->polygons(), _lightsTable->lights());
 }

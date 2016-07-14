@@ -57,7 +57,7 @@ void SpotLight::Rotate(float alpha, short axis)
     }
 }
 //Метод для изменения интенсивности источника света.
-void SpotLight::ChangeIntensivity(float I)
+void SpotLight::SetIntensivity(float I)
 {
     _intensivity = I;
 }

@@ -9,6 +9,7 @@ namespace Ui {
 class EditSceneDialog;
 }
 class PolygonsTable;
+class LightsTable;
 
 
 class EditSceneDialog : public QDialog
@@ -25,7 +26,7 @@ private:
     Ui::EditSceneDialog     *_ui;
 
     PolygonsTable           *_polTable;
-    std::vector<SpotLight>  _lights;
+    LightsTable             *_lightsTable;
 };
 
 #endif // EDITSCENEDIALOG_H

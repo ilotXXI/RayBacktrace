@@ -18,7 +18,7 @@ class SpotLight
   void ChangeSpotLight(float x1, float y1, float z1, float I);
   void Rotate(float alpha, short axis);
   void Replace(float x1, float y1, float z1);
-  void ChangeIntensivity(float I);
+  void SetIntensivity(float I);
 
   const Point & Place() const;
   float Intensivity() const;
@@ -26,12 +26,9 @@ class SpotLight
   float x() const;
   float y() const;
   float z() const;
-
-  //Функции-друзья класса.
-//  friend void GetIntensivity(const float &, const float &, const float &,
-//                             Polygon *, const int &, SpotLight *, const int &,
-//                             float &, float &, float &, const int &,
-//                             const Line &l);
+  void setX(float value);
+  void setY(float value);
+  void setZ(float value);
 };
 
 inline const Point &SpotLight::Place() const
@@ -57,6 +54,21 @@ inline float SpotLight::y() const
 inline float SpotLight::z() const
 {
     return _place.z;
+}
+
+inline void SpotLight::setX(float value)
+{
+    _place.x = value;
+}
+
+inline void SpotLight::setY(float value)
+{
+    _place.y = value;
+}
+
+inline void SpotLight::setZ(float value)
+{
+    _place.z = value;
 }
 
 #endif // SPOTLIGHT_H
