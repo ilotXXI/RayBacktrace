@@ -64,7 +64,6 @@ QVariant PolygonsTable::data(const QModelIndex &index, int role) const
 bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
                             int role)
 {
-    // TODO: handle colors set.
     if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QAbstractTableModel::setData(index, value, role);
 

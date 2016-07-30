@@ -7,6 +7,9 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSettings>
+
+#include <memory>
 
 #include "AddPolygonDialog.h"
 #include "AddLightDialog.h"
@@ -14,11 +17,27 @@
 #include "SpotLight.h"
 #include "EditSceneDialog.h"
 
+static const char *pathSettingName = "filePath";
+static const char *geometrySettingName = "geometry";
+
+static inline std::unique_ptr<QSettings> settingsInst()
+{
+    QSettings *res = new QSettings(QSettings::IniFormat, QSettings::UserScope,
+        QApplication::organizationName(), "RayBacktrace");
+    res->beginGroup("RBMainWindow");
+    return std::unique_ptr<QSettings>(res);
+}
+
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
 {
     _ui->setupUi(this);
+
+    const std::unique_ptr<QSettings> settings = settingsInst();
+    if (settings.get() != nullptr)
+        restoreGeometry(settings->value(geometrySettingName).toByteArray());
 
     connect(_ui->saveAction, &QAction::triggered, this, &MainWindow::saveScene);
     connect(_ui->loadAction, &QAction::triggered, this, &MainWindow::loadScene);
@@ -36,6 +55,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    const std::unique_ptr<QSettings> settings = settingsInst();
+    if (settings.get() != nullptr)
+        settings->setValue(geometrySettingName, saveGeometry());
 }
 
 void MainWindow::setCanvas(const Canvas &canvas)
@@ -65,9 +87,13 @@ void MainWindow::newFile()
 
 void MainWindow::saveScene() const
 {
+    std::unique_ptr<QSettings> settings = settingsInst();
+    const QString initialPath = (settings.get() != nullptr) ?
+        settings->value(pathSettingName).toString() : QString();
+
     const QString path =
         QFileDialog::getSaveFileName(const_cast<MainWindow *>(this),
-        "Записать в файл...");
+        tr("Записать в файл..."), initialPath);
     if(path.isEmpty())
         return;
 
@@ -118,12 +144,20 @@ void MainWindow::saveScene() const
         stream << place.z;
         stream << light.Intensivity();
     }
+
+    // Update settings.
+    if (settings.get() != nullptr)
+        settings->setValue(pathSettingName, path);
 }
 
 void MainWindow::loadScene()
 {
-    const QString path =
-        QFileDialog::getOpenFileName(this, tr("Загрузить из файла..."));
+    std::unique_ptr<QSettings> settings = settingsInst();
+    const QString initialPath = (settings.get() != nullptr) ?
+        settings->value(pathSettingName).toString() : QString();
+
+    const QString path = QFileDialog::getOpenFileName(this,
+        tr("Загрузить из файла..."), initialPath);
     if(path.isEmpty())
         return;
 
@@ -180,6 +214,10 @@ void MainWindow::loadScene()
 
     _scene.setPolygons(std::move(polygons));
     _scene.setLights(std::move(lights));
+
+    // Update settings.
+    if (settings.get() != nullptr)
+        settings->setValue(pathSettingName, path);
 }
 
 void MainWindow::addPolygon()
