@@ -124,9 +124,10 @@ void Trace(Line &l, const Polygon *obj, int np, const SpotLight *light,
             Trace(r, obj, np, light, nl, Rotr, Gotr, Botr, looked_lines);
             --looked_lines;
             //Обработка полученных интенсивностей.
-            Rotr *= obj[cross_pol_n].ks;
-            Gotr *= obj[cross_pol_n].ks;
-            Botr *= obj[cross_pol_n].ks;
+            const float ks = obj[cross_pol_n].GetKs();
+            Rotr *= ks;
+            Gotr *= ks;
+            Botr *= ks;
             if(Rotr < -EPSILON  ||  Rotr > 255)
                 Rotr = 255;
             if(Gotr < -EPSILON  ||  Gotr > 255)
@@ -193,10 +194,13 @@ void GetIntensivity(const float &x, const float &y, const float &z,
     Line line_to_light;
     float t, cosT, d, cosA;
     int i, j;
+
     //Вычисление рассеянной составляющей.
-    R = Ia * obj[cross_pol_n].Rka;
-    G = Ia * obj[cross_pol_n].Gka;
-    B = Ia * obj[cross_pol_n].Bka;
+    const Rgb diffusedRgb = obj[cross_pol_n].KaColor();
+    R = Ia * diffusedRgb.red();
+    G = Ia * diffusedRgb.green();
+    B = Ia * diffusedRgb.blue();
+
     //Вычисления составлющих от диффузионного рассеивания и зеркального отражения.
     line_to_light.x0 = x;
     line_to_light.y0 = y;
@@ -207,6 +211,7 @@ void GetIntensivity(const float &x, const float &y, const float &z,
         line_to_light.a = light[i].x() - x;
         line_to_light.b = light[i].y() - y;
         line_to_light.c = light[i].z() - z;
+
         //Поиск пересечения луча с другими объектами сцены.
         flag = 1;
         for (j=0; j<cross_pol_n; ++j)       //Перебор многоугольников.
@@ -266,14 +271,18 @@ void GetIntensivity(const float &x, const float &y, const float &z,
             cosT /= sqrt(obj[cross_pol_n].GetA()*obj[cross_pol_n].GetA() +
                 obj[cross_pol_n].GetB()*obj[cross_pol_n].GetB() +
                 obj[cross_pol_n].GetC()*obj[cross_pol_n].GetC())  *  cosA;
+
             //Вычисление освещённости диффузионно отражённого света от i-го источника.
             d = sqrt(line_to_light.a*line_to_light.a +
                 line_to_light.b*line_to_light.b +
                 line_to_light.c*line_to_light.c);
             t = cosT * light[i].Intensivity() / (d + K_KOEFFICIENT);
-            R += obj[cross_pol_n].Rkd * t;
-            G += obj[cross_pol_n].Gkd * t;
-            B += obj[cross_pol_n].Bkd * t;
+
+            const Rgb reflectedRgb = obj[cross_pol_n].KdColor();
+            R += reflectedRgb.red() * t;
+            G += reflectedRgb.green() * t;
+            B += reflectedRgb.blue() * t;
+
             //Вычисление освещённости зеркально отражённого света от i-го источника.
             //Нормирование вектора line_to_light.
             line_to_light.a /= cosA;
@@ -288,8 +297,9 @@ void GetIntensivity(const float &x, const float &y, const float &z,
             cosA = l.a * line_to_light.a  +  l.b * line_to_light.b  +
                 l.c * line_to_light.c;
             //Вычисление освещённости зеркально отражённого света.
-            cosA = Raise(fabs(cosA), obj[cross_pol_n].c_p_k) *
-                obj[cross_pol_n].ks * light[i].Intensivity() / (d + K_KOEFFICIENT);
+            cosA = Raise(fabs(cosA), obj[cross_pol_n].CosPower()) *
+                obj[cross_pol_n].GetKs() *
+                light[i].Intensivity() / (d + K_KOEFFICIENT);
             R += cosA;
             G += cosA;
             B += cosA;

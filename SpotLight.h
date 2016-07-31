@@ -15,7 +15,6 @@ class SpotLight
  public:
   SpotLight();
   SpotLight(float x1, float y1, float z1, float I);
-  void ChangeSpotLight(float x1, float y1, float z1, float I);
   void Rotate(float alpha, short axis);
   void Replace(float x1, float y1, float z1);
   void SetIntensivity(float I);

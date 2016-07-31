@@ -8,18 +8,9 @@ SpotLight::SpotLight()
 }
 
 SpotLight::SpotLight(float x1, float y1, float z1, float I)
+    : _place(x1, y1, z1)
+    , _intensivity(I)
 {
-    ChangeSpotLight(x1, y1, z1, I);
-}
-
-//-----------------------------------------------------------------------------
-//Метод для задания источника света.
-void SpotLight::ChangeSpotLight(float x1, float y1, float z1, float I)
-{
-    _place.x = x1;
-    _place.y = y1;
-    _place.z = z1;
-    _intensivity = I;
 }
 
 //-----------------------------------------------------------------------------

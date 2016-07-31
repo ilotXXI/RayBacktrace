@@ -13,82 +13,27 @@
 //Для многоугольника.
 Polygon::Polygon(const std::vector<Point> &vertices, const Rgb &ka,
                  const Rgb &kd, float ksCoeff, int cosCoeff)
+    : _vertices(vertices)
+    , _cosPow(cosCoeff)
+    , _ka(ka)
+    , _kd(kd)
+    , _ks(ksCoeff)
 {
-    ChangePolygon(vertices, ka, kd, ksCoeff, cosCoeff);
-}
-
-Polygon::Polygon(float x[], float y[], float z[], int n1, float r[],
-                 float g[], float b[], float ks_koeff, int cos_koeff)
-{
-    ChangePolygon(x, y, z, n1, r, g, b, ks_koeff, cos_koeff);
-}
-
-void Polygon::ChangePolygon(const std::vector<Point> &vertices, const Rgb &ka,
-                            const Rgb &kd, float ksCoeff, int cosCoeff)
-{
-    top = vertices;
-
-    //Запись коэффициентов отражения для грани.
-    Rka = ka.red();
-    Gka = ka.green();
-    Bka = ka.blue();
-    Rkd = kd.red();
-    Gkd = kd.green();
-    Bkd = kd.blue();
-
-    ks = ksCoeff;
-    c_p_k = cosCoeff;
-
     //Вычисление коэффициентов для уравнения несущей плоскости.
-    const float x[] = {top[0].x, top[1].x, top[2].x};
-    const float y[] = {top[0].y, top[1].y, top[2].y};
-    const float z[] = {top[0].z, top[1].z, top[2].z};
+    const float x[] = {_vertices[0].x, _vertices[1].x, _vertices[2].x};
+    const float y[] = {_vertices[0].y, _vertices[1].y, _vertices[2].y};
+    const float z[] = {_vertices[0].z, _vertices[1].z, _vertices[2].z};
 
-    A = (y[1] - y[0]) * (z[2] - z[0]) - (y[2] - y[0]) * (z[1] - z[0]);
-    B = (z[1] - z[0]) * (x[2] - x[0]) - (x[1] - x[0]) * (z[2] - z[0]);
-    C = (x[1] - x[0]) * (y[2] - y[0]) - (y[1] - y[0]) * (x[2] - x[0]);
+    _A = (y[1] - y[0]) * (z[2] - z[0]) - (y[2] - y[0]) * (z[1] - z[0]);
+    _B = (z[1] - z[0]) * (x[2] - x[0]) - (x[1] - x[0]) * (z[2] - z[0]);
+    _C = (x[1] - x[0]) * (y[2] - y[0]) - (y[1] - y[0]) * (x[2] - x[0]);
 
     //Нормирование вектора нормали.
-    D = sqrt(A * A + B * B + C * C); //D пока используется как промежуточная переменная.
-    A /= D;
-    B /= D;
-    C /= D;
-    D = -(A * x[0] + B * y[0] + C * z[0]);
-}
-
- //Метод для задания многоугольника.
-void Polygon::ChangePolygon(float x[], float y[], float z[], int n1, float r[], float g[], float b[], float ks_koeff, int cos_koeff)
-{
-    //Запись массива вершин.
-    top.resize(n1);
-    for (size_t i = 0; i < size_t(n1); ++i)
-    {
-        top[i].x = x[i];
-        top[i].y = y[i];
-        top[i].z = z[i];
-    }
-
-    //Запись коэффициентов отражения для грани.
-    Rka = r[0];
-    Rkd = r[1];
-    Gka = g[0];
-    Gkd = g[1];
-    Bka = b[0];
-    Bkd = b[1];
-    ks = ks_koeff;
-    c_p_k = cos_koeff;
-
-    //Вычисление коэффициентов для уравнения несущей плоскости.
-    A = (y[1] - y[0]) * (z[2] - z[0]) - (y[2] - y[0]) * (z[1] - z[0]);
-    B = (z[1] - z[0]) * (x[2] - x[0]) - (x[1] - x[0]) * (z[2] - z[0]);
-    C = (x[1] - x[0]) * (y[2] - y[0]) - (y[1] - y[0]) * (x[2] - x[0]);
-
-    //Нормирование вектора нормали.
-    D = sqrt(A * A + B * B + C * C); //D пока используется как промежуточная переменная.
-    A /= D;
-    B /= D;
-    C /= D;
-    D = -(A * x[0] + B * y[0] + C * z[0]);
+    _D = sqrt(_A * _A + _B * _B + _C * _C); //D пока используется как промежуточная переменная.
+    _A /= _D;
+    _B /= _D;
+    _C /= _D;
+    _D = -(_A * x[0] + _B * y[0] + _C * z[0]);
 }
 
  //Метод для определения, лежит ли точка в многоугольнике, если она лежит на его несущей плоскости.
@@ -97,10 +42,10 @@ char Polygon::PointInPolygon(float x, float y, float z) const
     int i, m;
     m = 0;
     //Определение, на какую плоскость можно спроецировать многоугольник и точку.
-    if(fabs(C) > EPSILON)
+    if(fabs(_C) > EPSILON)
     {//Если несущая плоскость многоугольника не перпендикулярна плоскости XY, то многоугольник и точку можно спроецировать на неё.
-        switch (LineCross(x, y, top.back().y, top.front().x, top.front().y,
-                top[1].x, top[1].y, top[2].y))
+        switch (LineCross(x, y, _vertices.back().y, _vertices.front().x, _vertices.front().y,
+                _vertices[1].x, _vertices[1].y, _vertices[2].y))
         {
         case 1:  //Здесь стоит switch с 2 case'ами, потому что функция LineCross может возвращать также и значение 0, и в этом случае не нужно ничего делать.
           ++m;
@@ -109,13 +54,13 @@ char Polygon::PointInPolygon(float x, float y, float z) const
           return 1;
         }
 
-        int n = top.size();
+        int n = _vertices.size();
         n -= 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
         for(i=1; i<n; ++i)
         {
             //Проверка, пересекает ли луч очередную сторону.
-            switch(LineCross(x, y, top[i-1].y, top[i].x, top[i].y, top[i+1].x,
-                    top[i+1].y, top[i+2].y))
+            switch(LineCross(x, y, _vertices[i-1].y, _vertices[i].x, _vertices[i].y, _vertices[i+1].x,
+                    _vertices[i+1].y, _vertices[i+2].y))
             {
             case 1:
                 ++m;
@@ -128,8 +73,8 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
         //Осталось проверить ещё 2 стороны.
         //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-        switch(LineCross(x, y, top[n-1].y, top[n].x, top[n].y, top[n+1].x,
-                top[n+1].y, top[0].y))
+        switch(LineCross(x, y, _vertices[n-1].y, _vertices[n].x, _vertices[n].y, _vertices[n+1].x,
+                _vertices[n+1].y, _vertices[0].y))
         {
         case 1:
             ++m;
@@ -141,8 +86,8 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
         //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
         ++n;
-        switch(LineCross(x, y, top[n-1].y, top[n].x, top[n].y, top[0].x,
-                top[0].y, top[1].y))
+        switch(LineCross(x, y, _vertices[n-1].y, _vertices[n].x, _vertices[n].y, _vertices[0].x,
+                _vertices[0].y, _vertices[1].y))
         {
         case 1:
           ++m;
@@ -158,10 +103,10 @@ char Polygon::PointInPolygon(float x, float y, float z) const
     }
 
     //Продолжение определения плоскости проецирования.
-    if(fabs(B) > EPSILON)
+    if(fabs(_B) > EPSILON)
     {//Если несущая плоскость многоугольника перпендикулярна плоскости XY, но не перпендикулярна плоскости XZ, то многоугольник и точку можно спроецировать на XZ.
-        switch(LineCross(x, z, top.back().z, top[0].x, top[0].z, top[1].x,
-                top[1].z, top[2].z))
+        switch(LineCross(x, z, _vertices.back().z, _vertices[0].x, _vertices[0].z, _vertices[1].x,
+                _vertices[1].z, _vertices[2].z))
         {
         case 1:
           ++m;
@@ -170,11 +115,11 @@ char Polygon::PointInPolygon(float x, float y, float z) const
           return 1;
         }
 
-        int n = top.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
+        int n = _vertices.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
         for(i=1; i<n; ++i)
         //Проверка, пересекает ли луч очередную сторону.
-        switch(LineCross(x, z, top[i-1].z, top[i].x, top[i].z, top[i+1].x,
-                top[i+1].z, top[i+2].z))
+        switch(LineCross(x, z, _vertices[i-1].z, _vertices[i].x, _vertices[i].z, _vertices[i+1].x,
+                _vertices[i+1].z, _vertices[i+2].z))
         {
         case 1:
             ++m;
@@ -186,7 +131,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
         //Осталось проверить ещё 2 стороны.
         //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-        switch(LineCross(x, z, top[n-1].z, top[n].x, top[n].z, top[n+1].x, top[n+1].z, top[0].z))
+        switch(LineCross(x, z, _vertices[n-1].z, _vertices[n].x, _vertices[n].z, _vertices[n+1].x, _vertices[n+1].z, _vertices[0].z))
         {
         case 1:
             ++m;
@@ -198,7 +143,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
         //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
         ++n;
-        switch(LineCross(x, z, top[n-1].z, top[n].x, top[n].z, top[0].x, top[0].z, top[1].z))
+        switch(LineCross(x, z, _vertices[n-1].z, _vertices[n].x, _vertices[n].z, _vertices[0].x, _vertices[0].z, _vertices[1].z))
         {
         case 1:
             ++m;
@@ -215,8 +160,8 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
     //Последняя "стадия" определения плоскости проецирования.
     //Если несущая плоскость многоугольника перпендикулярна и плоскости XY, и плоскости XZ, то многоугольник и точку можно спроецировать на YZ.
-    switch(LineCross(y, z, top.back().z, top[0].y, top[0].z, top[1].y,
-            top[1].z, top[2].z))
+    switch(LineCross(y, z, _vertices.back().z, _vertices[0].y, _vertices[0].z, _vertices[1].y,
+            _vertices[1].z, _vertices[2].z))
     {
     case 1:
         ++m;
@@ -225,11 +170,11 @@ char Polygon::PointInPolygon(float x, float y, float z) const
         return 1;
     }
 
-    int n = top.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
+    int n = _vertices.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
     for(i=1; i<n; ++i)
     {
     //Проверка, пересекает ли луч очередную сторону.
-        switch(LineCross(y, z, top[i-1].z, top[i].y, top[i].z, top[i+1].y, top[i+1].z, top[i+2].z))
+        switch(LineCross(y, z, _vertices[i-1].z, _vertices[i].y, _vertices[i].z, _vertices[i+1].y, _vertices[i+1].z, _vertices[i+2].z))
         {
         case 1:
             ++m;
@@ -242,7 +187,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
     //Осталось проверить ещё 2 стороны.
     //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-    switch(LineCross(y, z, top[n-1].z, top[n].y, top[n].z, top[n+1].y, top[n+1].z, top[0].z))
+    switch(LineCross(y, z, _vertices[n-1].z, _vertices[n].y, _vertices[n].z, _vertices[n+1].y, _vertices[n+1].z, _vertices[0].z))
     {
     case 1:
         ++m;
@@ -254,7 +199,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
     //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
     ++n;
-    switch(LineCross(y, z, top[n-1].z, top[n].y, top[n].z, top[0].y, top[0].z, top[1].z))
+    switch(LineCross(y, z, _vertices[n-1].z, _vertices[n].y, _vertices[n].z, _vertices[0].y, _vertices[0].z, _vertices[1].z))
     {
     case 1:
         ++m;
@@ -328,7 +273,7 @@ char Polygon::LineCross(const float &x, const float &y, const float &y0,
 //Метод для перемещения многоугольника.
 void Polygon::Replace(float x1, float y1, float z1)
 {
-    for (auto &vert: top)
+    for (auto &vert: _vertices)
     {
         vert.x += x1;
         vert.y += y1;
@@ -336,16 +281,16 @@ void Polygon::Replace(float x1, float y1, float z1)
     }
 
     //Перевычисление коэффициентов для уравнения несущей плоскости.
-    A = (top[1].y - top[0].y)*(top[2].z - top[0].z) - (top[2].y - top[0].y)*(top[1].z - top[0].z);
-    B = (top[1].z - top[0].z)*(top[2].x - top[0].x) - (top[1].x - top[0].x)*(top[2].z - top[0].z);
-    C = (top[1].x - top[0].x)*(top[2].y - top[0].y) - (top[1].y - top[0].y)*(top[2].x - top[0].x);
+    _A = (_vertices[1].y - _vertices[0].y)*(_vertices[2].z - _vertices[0].z) - (_vertices[2].y - _vertices[0].y)*(_vertices[1].z - _vertices[0].z);
+    _B = (_vertices[1].z - _vertices[0].z)*(_vertices[2].x - _vertices[0].x) - (_vertices[1].x - _vertices[0].x)*(_vertices[2].z - _vertices[0].z);
+    _C = (_vertices[1].x - _vertices[0].x)*(_vertices[2].y - _vertices[0].y) - (_vertices[1].y - _vertices[0].y)*(_vertices[2].x - _vertices[0].x);
 
     //Нормирование вектора нормали.
-    D = sqrt(A*A + B*B + C*C); //D пока используется как промежуточная переменная.
-    A /= D;
-    B /= D;
-    C /= D;
-    D = -(A*top[0].x + B*top[0].y + C*top[0].z);
+    _D = sqrt(_A*_A + _B*_B + _C*_C); //D пока используется как промежуточная переменная.
+    _A /= _D;
+    _B /= _D;
+    _C /= _D;
+    _D = -(_A*_vertices[0].x + _B*_vertices[0].y + _C*_vertices[0].z);
 }
 
 //Метод для поворота многоугольника.
@@ -357,7 +302,7 @@ void Polygon::Rotate(float alpha, short axis)
     switch (axis)
     {
     case 0: //Поворот вокруг оси Ox.
-        for (auto &vert:    top)
+        for (auto &vert:    _vertices)
         {
             old = vert.y;
             vert.y = cosAlpha * old  -  sinAlpha * vert.z;
@@ -365,7 +310,7 @@ void Polygon::Rotate(float alpha, short axis)
         }
         break;
     case 1: //Поворот вокруг оси Oy.
-        for (auto &vert:    top)
+        for (auto &vert:    _vertices)
         {
           old = vert.x;
           vert.x = cosAlpha * old  +  sinAlpha * vert.z;
@@ -373,7 +318,7 @@ void Polygon::Rotate(float alpha, short axis)
         }
         break;
     default: //Поворот вокруг оси Oz.
-        for (auto &vert:    top)
+        for (auto &vert:    _vertices)
         {
             old = vert.x;
             vert.x = cosAlpha * old  -  sinAlpha * vert.y;
@@ -382,22 +327,22 @@ void Polygon::Rotate(float alpha, short axis)
     }
 
     //Перевычисление коэффициентов для уравнения несущей плоскости.
-    A = (top[1].y - top[0].y)*(top[2].z - top[0].z) - (top[2].y - top[0].y)*(top[1].z - top[0].z);
-    B = (top[1].z - top[0].z)*(top[2].x - top[0].x) - (top[1].x - top[0].x)*(top[2].z - top[0].z);
-    C = (top[1].x - top[0].x)*(top[2].y - top[0].y) - (top[1].y - top[0].y)*(top[2].x - top[0].x);
+    _A = (_vertices[1].y - _vertices[0].y)*(_vertices[2].z - _vertices[0].z) - (_vertices[2].y - _vertices[0].y)*(_vertices[1].z - _vertices[0].z);
+    _B = (_vertices[1].z - _vertices[0].z)*(_vertices[2].x - _vertices[0].x) - (_vertices[1].x - _vertices[0].x)*(_vertices[2].z - _vertices[0].z);
+    _C = (_vertices[1].x - _vertices[0].x)*(_vertices[2].y - _vertices[0].y) - (_vertices[1].y - _vertices[0].y)*(_vertices[2].x - _vertices[0].x);
 
     //Нормирование вектора нормали.
-    D = sqrt(A*A + B*B + C*C); //D пока используется как промежуточная переменная.
-    A /= D;
-    B /= D;
-    C /= D;
-    D = -(A*top[0].x + B*top[0].y + C*top[0].z);
+    _D = sqrt(_A*_A + _B*_B + _C*_C); //D пока используется как промежуточная переменная.
+    _A /= _D;
+    _B /= _D;
+    _C /= _D;
+    _D = -(_A*_vertices[0].x + _B*_vertices[0].y + _C*_vertices[0].z);
 }
 
 //Метод для масштабирования многоугольника.
 void Polygon::Scale(float t)
 {
-    for (auto &vert:    top)
+    for (auto &vert:    _vertices)
     {
         vert.x *= t;
         vert.y *= t;
@@ -405,50 +350,25 @@ void Polygon::Scale(float t)
     }
 
     //Перевычисление коэффициентов для уравнения несущей плоскости.
-    A = (top[1].y - top[0].y)*(top[2].z - top[0].z) - (top[2].y - top[0].y)*(top[1].z - top[0].z);
-    B = (top[1].z - top[0].z)*(top[2].x - top[0].x) - (top[1].x - top[0].x)*(top[2].z - top[0].z);
-    C = (top[1].x - top[0].x)*(top[2].y - top[0].y) - (top[1].y - top[0].y)*(top[2].x - top[0].x);
+    _A = (_vertices[1].y - _vertices[0].y)*(_vertices[2].z - _vertices[0].z) - (_vertices[2].y - _vertices[0].y)*(_vertices[1].z - _vertices[0].z);
+    _B = (_vertices[1].z - _vertices[0].z)*(_vertices[2].x - _vertices[0].x) - (_vertices[1].x - _vertices[0].x)*(_vertices[2].z - _vertices[0].z);
+    _C = (_vertices[1].x - _vertices[0].x)*(_vertices[2].y - _vertices[0].y) - (_vertices[1].y - _vertices[0].y)*(_vertices[2].x - _vertices[0].x);
 
     //Нормирование вектора нормали.
-    D = sqrt(A*A + B*B + C*C); //D пока используется как промежуточная переменная.
-    A /= D;
-    B /= D;
-    C /= D;
-    D = -(A*top[0].x + B*top[0].y + C*top[0].z);
+    _D = sqrt(_A*_A + _B*_B + _C*_C); //D пока используется как промежуточная переменная.
+    _A /= _D;
+    _B /= _D;
+    _C /= _D;
+    _D = -(_A*_vertices[0].x + _B*_vertices[0].y + _C*_vertices[0].z);
 }
 
 //Метод для вычисления координат направляющего вектора отражённого луча.
 void Polygon::GetLine(const Line &l, Line &r) const
 {
     float q;
-    q = l.a * A  +  l.b * B  +  l.c * C;
+    q = l.a * _A  +  l.b * _B  +  l.c * _C;
     q += q;             // q = 2*(L; n).
-    r.a = l.a - q*A;
-    r.b = l.b - q*B;
-    r.c = l.c - q*C;    // R = -L + q*n.
-}
-
-void Polygon::Colors(float Rka1, float Gka1, float Bka1, float Rkd1, float Gkd1, float Bkd1, float ks1, float n1)
-{
-    if(Rka1 >= 0)
-        Rka = Rka1;
-    if(Gka1 >= 0)
-        Gka = Gka1;
-    if(Bka1 >= 0)
-        Bka = Bka1;
-    if(Rkd1 >= 0)
-        Rkd = Rkd1;
-    if(Gkd1 >= 0)
-        Gkd = Gkd1;
-    if(Bkd1 >= 0)
-        Bkd = Bkd1;
-    if(ks1 >= 0)
-        ks = ks1;
-    if(n1 >= 0)
-        c_p_k = int(n1);
-}
-
-const Point &Polygon::Vertice(int index) const
-{
-    return top[index];
+    r.a = l.a - q*_A;
+    r.b = l.b - q*_B;
+    r.c = l.c - q*_C;    // R = -L + q*n.
 }

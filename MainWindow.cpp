@@ -28,6 +28,11 @@ static inline std::unique_ptr<QSettings> settingsInst()
     return std::unique_ptr<QSettings>(res);
 }
 
+static inline QDataStream & operator <<(QDataStream &stream, const Rgb &rgb)
+{
+    return stream << rgb.red() << rgb.green() << rgb.blue();
+}
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -121,9 +126,9 @@ void MainWindow::saveScene() const
         const int verticesCount = polygon.VerticesCount();
 
         //Запись коэффициентов и кол-ва вершин очередного многоугольника.
-        stream << polygon.Rka << polygon.Gka << polygon.Bka;
-        stream << polygon.Rkd << polygon.Gkd << polygon.Bkd;
-        stream << polygon.ks << polygon.c_p_k << verticesCount;
+        stream << polygon.KaColor();
+        stream << polygon.KdColor();
+        stream << polygon.GetKs() << polygon.CosPower() << verticesCount;
 
         //Запись координат вершин многоугольника.
         for (int vertInd = 0; vertInd < verticesCount; ++vertInd)
@@ -173,7 +178,6 @@ void MainWindow::loadScene()
     stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
     float r[2], g[2], b[2];
-    float x[25], y[25], z[25];
     float ks = 0.f;
     int c_p_k = 0;
     int top_n = 0;
@@ -196,11 +200,17 @@ void MainWindow::loadScene()
         stream >> ks >> c_p_k >> top_n;
 
         //Считывание массива вершин очередного многоуогольника.
-        for(int j = 0; j < top_n; ++j)
-            stream >> x[j] >> y[j] >> z[j];
+        std::vector<Point> vertices;
+        vertices.reserve(top_n);
+        for(int j = 0; j < top_n; ++j) {
+            float x, y, z;
+            stream >> x >> y >> z;
+            vertices.emplace_back(x, y, z);
+        }
 
         //"Добавление" (т.е. изменение) очередного многоугольника.
-        polygons.emplace_back(x, y, z, top_n, r, g, b, ks, c_p_k);
+        polygons.emplace_back(vertices, Rgb(r[0], g[0], b[0]),
+            Rgb(r[1], g[1], b[1]), ks, c_p_k);
     }
 
     //Чтение источников света.
@@ -208,8 +218,9 @@ void MainWindow::loadScene()
     lights.reserve(nl);
     for(int i = 0; i < nl; ++i)
     {
-        stream >> *x >> *y >> *z >> *r;
-        lights.emplace_back(x[0], y[0], z[0], r[0]);
+        float x, y, z, intensivity;
+        stream >> x >> y >> z >> intensivity;
+        lights.emplace_back(x, y, z, intensivity);
     }
 
     _scene.setPolygons(std::move(polygons));
