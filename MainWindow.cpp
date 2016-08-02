@@ -16,6 +16,7 @@
 #include "Polygon.h"
 #include "SpotLight.h"
 #include "EditSceneDialog.h"
+#include "Canvas.h"
 
 static const char *pathSettingName = "filePath";
 static const char *geometrySettingName = "geometry";
@@ -67,18 +68,23 @@ MainWindow::~MainWindow()
 
 void MainWindow::setCanvas(const Canvas &canvas)
 {
-    if (canvas.empty() || canvas.front().empty()) {
+    if (canvas.isEmpty()) {
         _ui->pixmapWidget->setPixmap(QPixmap());
         return;
     }
 
-    const int width = canvas.size();
-    const int height = canvas.front().size();
+    auto rgbConvert = [](const Rgb &rgb) -> QRgb {
+        return qRgb(rgb.red(), rgb.green(), rgb.blue());
+    };
+
+    const int width = canvas.width();
+    const int height = canvas.height();
     QImage image(width, height, QImage::Format_RGB32);
 
     for (int x = 0; x < width; ++x) {
         for (int y = 0; y < height; ++y) {
-            image.setPixel(x, y, canvas[x][y].rgb());
+            const QRgb color = rgbConvert(canvas.pixel(x, y));
+            image.setPixel(x, y, color);
         }
     }
 
@@ -264,8 +270,7 @@ void MainWindow::render()
     timer.start();
 
     const QWidget *display = _ui->pixmapWidget;
-    Canvas canvas(display->width(),
-        std::vector<QColor>(display->height(), Qt::black));
+    Canvas canvas(display->width(), display->height());
     const std::vector<Polygon> &pol = _scene.polygons();
     const std::vector<SpotLight> &lights = _scene.lights();
     Draw(canvas, pol.data(), pol.size(), lights.data(), lights.size());

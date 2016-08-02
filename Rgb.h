@@ -4,6 +4,7 @@
 class Rgb
 {
 public:
+    Rgb();
     Rgb(float r, float g, float b);
 
     float red() const;
@@ -18,6 +19,13 @@ private:
     float _green;
     float _blue;
 };
+
+inline Rgb::Rgb()
+    : _red(0.f)
+    , _green(0.f)
+    , _blue(0.f)
+{
+}
 
 inline Rgb::Rgb(float r, float g, float b)
     : _red(r)

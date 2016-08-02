@@ -37,7 +37,8 @@ HEADERS  += MainWindow.h \
     EditSceneDialog.h \
     PolygonsTable.h \
     Delegate.h \
-    LightsTable.h
+    LightsTable.h \
+    Canvas.h
 
 FORMS    += MainWindow.ui \
     AddPolygonDialog.ui \

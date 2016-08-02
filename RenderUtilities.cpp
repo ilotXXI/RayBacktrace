@@ -3,6 +3,7 @@
 
 #include "RenderUtilities.h"
 
+#include "Canvas.h"
 #include "Polygon.h"
 #include "Line.h"
 #include "SpotLight.h"
@@ -15,42 +16,39 @@
 #define B_KOEFFICIENT         0.001
 #define MAX_LOOKED_LINES_CNT  20
 
-void GetIntensivity(const float &x, const float &y, const float &z,
-                    const Polygon *obj, const int &np, const SpotLight *light,
-                    const int &nl, float &R, float &G, float &B,
-                    const int &cross_pol_n, const Line &l);
+static void GetIntensivity(const float &x, const float &y, const float &z,
+                           const Polygon *obj, const int &np,
+                           const SpotLight *light,
+                           const int &nl, float &R, float &G, float &B,
+                           const int &cross_pol_n, const Line &l);
+static float CrossingParameter(Line l, const Polygon *obj,
+                               int np, int &cross_pol_n);
 
 //Функция вычисления натуральной степени числа.
 float Raise(float x, const int &n)
 {
     float y;
     y = x;
-    for(int i=1; i<n; ++i)
+    for (int i = 1; i < n; ++i)
         y *= x;
     return y;
 }
 
 //Реализация метода трассировки лучей.
-void Draw(Canvas &display, const Polygon *obj, int np,
+void Draw(Canvas &canvas, const Polygon *obj, int np,
           const SpotLight *light, int nl)
 {
     float R, G, B;
     Line l;
     short looked_lines;
     //Подготовка.
-    const QColor black(0, 0, 0);
-    for (auto &column:    display)
-    {
-        for (auto &pixel:    column)
-        {
-            pixel = black;
-        }
-    }
+    canvas.clear();
 
     looked_lines = 0;
     l.z0 = DISPLAY_Z;
-    const int width = display.size() / 2;
-    const int height = display.front().size() / 2;
+    const int width = canvas.width() / 2;
+    const int height = canvas.height() / 2;
+
     //Начало алгоритма трассировки лучей: перебор всех пикселей на окне.
     for (l.x0=-width; l.x0<width; ++l.x0)
         for (l.y0=-height + 1; l.y0<height; ++l.y0)
@@ -68,7 +66,7 @@ void Draw(Canvas &display, const Polygon *obj, int np,
                 G = 255;
             if (B > 255  ||  B < 0)
                 B = 255;
-            display[(int)l.x0+width][height-(int)l.y0] = QColor(R, G, B);
+            canvas.setPixel((int)l.x0+width, height-(int)l.y0, Rgb(R, G, B));
         }
 }
 

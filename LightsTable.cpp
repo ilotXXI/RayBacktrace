@@ -17,12 +17,12 @@ QVariant LightsTable::headerData(int section, Qt::Orientation orientation,
     return QString(colNames[section]);
 }
 
-int LightsTable::rowCount(const QModelIndex &parent) const
+int LightsTable::rowCount(const QModelIndex &) const
 {
     return int(_lights.size());
 }
 
-int LightsTable::columnCount(const QModelIndex &parent) const
+int LightsTable::columnCount(const QModelIndex &) const
 {
     return ColumnsCount;
 }
