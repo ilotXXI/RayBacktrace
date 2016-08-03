@@ -22,7 +22,9 @@ SOURCES += main.cpp\
     EditSceneDialog.cpp \
     PolygonsTable.cpp \
     Delegate.cpp \
-    LightsTable.cpp
+    LightsTable.cpp \
+    Renderer.cpp \
+    SimpleRenderer.cpp
 
 HEADERS  += MainWindow.h \
     Polygon.h \
@@ -38,7 +40,9 @@ HEADERS  += MainWindow.h \
     PolygonsTable.h \
     Delegate.h \
     LightsTable.h \
-    Canvas.h
+    Canvas.h \
+    Renderer.h \
+    SimpleRenderer.h
 
 FORMS    += MainWindow.ui \
     AddPolygonDialog.ui \

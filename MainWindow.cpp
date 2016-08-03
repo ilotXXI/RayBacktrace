@@ -17,6 +17,7 @@
 #include "SpotLight.h"
 #include "EditSceneDialog.h"
 #include "Canvas.h"
+#include "SimpleRenderer.h"
 
 static const char *pathSettingName = "filePath";
 static const char *geometrySettingName = "geometry";
@@ -38,6 +39,7 @@ static inline QDataStream & operator <<(QDataStream &stream, const Rgb &rgb)
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
+    , _renderer(new SimpleRenderer(this))
 {
     _ui->setupUi(this);
 
@@ -266,17 +268,22 @@ void MainWindow::editScene()
 
 void MainWindow::render()
 {
+    if (_renderer.isNull()) {
+        QMessageBox::critical(this, tr("Ошибка отрисовки"),
+            tr("Алгоритм рендеринга не может запущен. "
+               "Попробуйте перезапустить программу."));
+        return;
+    }
+
+    const QWidget *display = _ui->pixmapWidget;
+
     QTime timer;
     timer.start();
 
-    const QWidget *display = _ui->pixmapWidget;
-    Canvas canvas(display->width(), display->height());
-    const std::vector<Polygon> &pol = _scene.polygons();
-    const std::vector<SpotLight> &lights = _scene.lights();
-    Draw(canvas, pol.data(), pol.size(), lights.data(), lights.size());
+    _renderer->render(_scene, display->size());
 
     const float drawingTime = float(timer.elapsed()) * 0.001;
     statusBar()->showMessage(tr("%1 секунд").arg(drawingTime));
 
-    setCanvas(canvas);
+    setCanvas(_renderer->result());
 }

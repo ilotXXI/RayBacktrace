@@ -12,6 +12,7 @@ class MainWindow;
 }
 class Polygon;
 class SpotLight;
+class Renderer;
 
 class MainWindow: public    QMainWindow
 {
@@ -25,6 +26,7 @@ private:
     QScopedPointer<Ui::MainWindow>  _ui;
 
     Scene                           _scene;
+    QScopedPointer<Renderer>        _renderer;
 
     void setCanvas(const Canvas &canvas);
 
