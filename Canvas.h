@@ -41,7 +41,7 @@ inline const Rgb & Canvas::pixel(int x, int y) const
 
 inline void Canvas::setPixel(int x, int y, const Rgb &color)
 {
-    Q_ASSERT(0 <= x && x < int(_width) && 0 <= y && y < int(_height));
+    _ASSERT(0 <= x && x < int(_width) && 0 <= y && y < int(_height));
     _pixels[x * _height + y] = color;
 }
 

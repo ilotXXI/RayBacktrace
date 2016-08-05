@@ -3,6 +3,7 @@
 
 #include "RenderUtilities.h"
 
+#include "Point.h"
 #include "Canvas.h"
 #include "Polygon.h"
 #include "Line.h"
@@ -12,8 +13,8 @@
 #define VISOR_Z               1200
 #define DISPLAY_Z             500
 #define Ia                    150
-#define K_KOEFFICIENT         0.01
-#define B_KOEFFICIENT         0.001
+#define K_KOEFFICIENT         0.01f
+#define B_KOEFFICIENT         0.001f
 #define MAX_LOOKED_LINES_CNT  20
 
 static void GetIntensivity(const float &x, const float &y, const float &z,
@@ -38,41 +39,49 @@ float Raise(float x, const int &n)
 void Draw(Canvas &canvas, const Polygon *obj, int np,
           const SpotLight *light, int nl)
 {
-    float R, G, B;
-    Line l;
-    short looked_lines;
     //Подготовка.
     canvas.clear();
 
-    looked_lines = 0;
-    l.z0 = DISPLAY_Z;
-    const int width = canvas.width() / 2;
-    const int height = canvas.height() / 2;
-
     //Начало алгоритма трассировки лучей: перебор всех пикселей на окне.
-    for (l.x0=-width; l.x0<width; ++l.x0)
-        for (l.y0=-height + 1; l.y0<height; ++l.y0)
-        {
-            //+Формирование луча через пиксель (x0; y0).
-            l.c = DISPLAY_Z - VISOR_Z;
-            l.a = l.x0;
-            l.b = l.y0;
-            //+Трассировка сформированного луча.
-            Trace(l, obj, np, light, nl, R, G, B, looked_lines);
-            //Закраска пикселя "найденным" цветом.
-            if (R > 255  ||  R < 0)
-                R = 255;
-            if (G > 255  ||  G < 0)
-                G = 255;
-            if (B > 255  ||  B < 0)
-                B = 255;
-            canvas.setPixel((int)l.x0+width, height-(int)l.y0, Rgb(R, G, B));
+    const int halfWidth = canvas.width() / 2;
+    const int halfHeight = canvas.height() / 2;
+    for (int x = - halfWidth; x < halfWidth; ++x) {
+        for (int y = - halfHeight + 1; y < halfHeight; ++y) {
+            const Rgb pixResult = TraceForPixel(x, y, obj, np, light, nl);
+            canvas.setPixel(x + halfWidth, halfHeight - y, pixResult);
         }
+    }
+}
+
+Rgb TraceForPixel(int pixX, int pixY, const Polygon *obj, int np,
+                  const SpotLight *light, int nl)
+{
+    Line l;
+    l.z0 = DISPLAY_Z;
+
+    //Начало алгоритма трассировки лучей: перебор всех пикселей на окне
+    //+Формирование луча через пиксель.
+    l.c = DISPLAY_Z - VISOR_Z;
+    l.a = l.x0 = float(pixX);
+    l.b = l.y0 = float(pixY);
+    //+Трассировка сформированного луча.
+    float R, G, B;
+    Trace(l, obj, np, light, nl, R, G, B, 0);
+
+    //Закраска пикселя "найденным" цветом.
+    if (R > 255  ||  R < 0)
+        R = 255;
+    if (G > 255  ||  G < 0)
+        G = 255;
+    if (B > 255  ||  B < 0)
+        B = 255;
+
+    return Rgb(R, G, B);
 }
 
 //Процедура трассировки одного луча.
 void Trace(Line &l, const Polygon *obj, int np, const SpotLight *light,
-           int nl, float &R, float &G, float &B, short &looked_lines)
+           int nl, float &R, float &G, float &B, short looked_lines)
 {
     float t, d;
     Line r, p;
@@ -81,10 +90,10 @@ void Trace(Line &l, const Polygon *obj, int np, const SpotLight *light,
     int cross_pol_n;
     //+Определение пересечения луча l.
     t = CrossingParameter(l, obj, np, cross_pol_n);
-    if (t <= 0)        //Если нет пересечения.
+    if (t <= 0) {
+        //Если нет пересечения.
         R = G = B = 0;
-    else
-    {
+    } else {
         //+Определение расстояния d до точки пересечения.
         d = sqrt(l.a*l.a + l.b*l.b + l.c*l.c); //Пока вычислим только норму направляющего вектора, т.к. она нам ещё понадобится. Позже её нужно будет домножить на t.
         //+Вычисление непосредственной освещённости.
@@ -112,15 +121,15 @@ void Trace(Line &l, const Polygon *obj, int np, const SpotLight *light,
             Gprel = 0;
             Bprel = 0;
         }
+
         //Если рассмотрено не слишком много отражённых лучей, то нужно рассмотреть отражённый луч.
         if(looked_lines < MAX_LOOKED_LINES_CNT)
         {
             //+Формирование отражённого луча r.
             obj[cross_pol_n].GetLine(l, r);
             //+Трассировка r.
-            ++looked_lines;
-            Trace(r, obj, np, light, nl, Rotr, Gotr, Botr, looked_lines);
-            --looked_lines;
+            Trace(r, obj, np, light, nl, Rotr, Gotr, Botr, looked_lines + 1);
+
             //Обработка полученных интенсивностей.
             const float ks = obj[cross_pol_n].GetKs();
             Rotr *= ks;
