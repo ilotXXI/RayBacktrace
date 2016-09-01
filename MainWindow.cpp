@@ -2,12 +2,15 @@
 #include "ui_MainWindow.h"
 
 #include <QTime>
+#include <QThread>
 #include <QPixmap>
 #include <QPainter>
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
+#include <QProgressBar>
+#include <QCloseEvent>
 
 #include <memory>
 
@@ -39,13 +42,20 @@ static inline QDataStream & operator <<(QDataStream &stream, const Rgb &rgb)
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
-    , _renderer(new SimpleRenderer(this))
+    , _progressBar(new QProgressBar(statusBar()))
+    , _workThread(new QThread(this))
 {
     _ui->setupUi(this);
 
     const std::unique_ptr<QSettings> settings = settingsInst();
     if (settings.get() != nullptr)
         restoreGeometry(settings->value(geometrySettingName).toByteArray());
+
+    _progressBar->setMinimum(0);
+    _progressBar->setMaximum(100);
+    _progressBar->setValue(0);
+    statusBar()->addPermanentWidget(_progressBar.data());
+    _progressBar->setVisible(false);
 
     connect(_ui->saveAction, &QAction::triggered, this, &MainWindow::saveScene);
     connect(_ui->loadAction, &QAction::triggered, this, &MainWindow::loadScene);
@@ -59,6 +69,9 @@ MainWindow::MainWindow(QWidget *parent)
         this, &MainWindow::addLight);
     connect(_ui->editSceneAction, &QAction::triggered,
         this, &MainWindow::editScene);
+
+    setRenderer(QScopedPointer<Renderer>(new SimpleRenderer));
+    _workThread->start();
 }
 
 MainWindow::~MainWindow()
@@ -66,6 +79,28 @@ MainWindow::~MainWindow()
     const std::unique_ptr<QSettings> settings = settingsInst();
     if (settings.get() != nullptr)
         settings->setValue(geometrySettingName, saveGeometry());
+
+    if (_workThread->isRunning()) {
+        _workThread->quit();
+        if (!_workThread->wait(5000)) {
+            // There is a possible deadlock. Try to force
+            // the thread termination.
+            _workThread->terminate();
+            _workThread->wait();
+        }
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (_renderingIsRunning) {
+        QMessageBox::warning(this, tr("Закрытие окна"),
+            tr("Невозможно закрыть окно во время рендеринга.\n"
+               "Пожалуйста, дождитесь его окончания."));
+        event->ignore();
+    } else {
+        QMainWindow::closeEvent(event);
+    }
 }
 
 void MainWindow::setCanvas(const Canvas &canvas)
@@ -91,6 +126,18 @@ void MainWindow::setCanvas(const Canvas &canvas)
     }
 
     _ui->pixmapWidget->setPixmap(QPixmap::fromImage(image));
+}
+
+void MainWindow::setRenderer(QScopedPointer<Renderer> &&renderer)
+{
+    _renderer.reset(renderer.take());
+    _renderer->moveToThread(_workThread.data());
+    connect(_renderer.data(), &Renderer::renderStarted,
+        this, &MainWindow::handleRenderStart);
+    connect(_renderer.data(), &Renderer::renderFinished,
+        this, &MainWindow::handleRenderFinish);
+    connect(_renderer.data(), &Renderer::progressChanged,
+        this, &MainWindow::updateRenderProgress);
 }
 
 void MainWindow::newFile()
@@ -170,7 +217,8 @@ void MainWindow::loadScene()
         settings->value(pathSettingName).toString() : QString();
 
     const QString path = QFileDialog::getOpenFileName(this,
-        tr("Загрузить из файла..."), initialPath);
+        tr("Загрузить из файла..."), initialPath,
+        QString(), nullptr, QFileDialog::DontUseNativeDialog);
     if(path.isEmpty())
         return;
 
@@ -266,6 +314,33 @@ void MainWindow::editScene()
     }
 }
 
+void MainWindow::handleRenderStart()
+{
+    setEnabled(false);
+
+    _progressBar->setVisible(true);
+    _progressBar->setValue(0);
+    statusBar()->showMessage(tr("Рендеринг начат"));
+}
+
+void MainWindow::handleRenderFinish()
+{
+    const float drawingTime = float(_timer.elapsed()) * 0.001f;
+    statusBar()->showMessage(
+        tr("Рендеринг завершён. Время: %1 секунд").
+        arg(drawingTime));
+    _progressBar->setVisible(false);
+
+    setCanvas(_renderer->result());
+    setEnabled(true);
+    _renderingIsRunning = false;
+}
+
+void MainWindow::updateRenderProgress(float weight)
+{
+    _progressBar->setValue(weight * 100.f + 0.5f);
+}
+
 void MainWindow::render()
 {
     if (_renderer.isNull()) {
@@ -275,15 +350,9 @@ void MainWindow::render()
         return;
     }
 
+    _renderingIsRunning = true;
+    _timer.start();
+
     const QWidget *display = _ui->pixmapWidget;
-
-    QTime timer;
-    timer.start();
-
-    _renderer->render(_scene, display->size());
-
-    const float drawingTime = float(timer.elapsed()) * 0.001;
-    statusBar()->showMessage(tr("%1 секунд").arg(drawingTime));
-
-    setCanvas(_renderer->result());
+    _renderer->renderAsync(_scene, display->size());
 }

@@ -20,11 +20,15 @@ void SimpleRenderer::performRendering(const Scene &scene, Canvas &canvas)
 
     const int halfWidth = canvas.width() / 2;
     const int halfHeight = canvas.height() / 2;
+    const float widthFloat = float(canvas.width());
     for (int x = - halfWidth; x < halfWidth; ++x) {
         for (int y = - halfHeight + 1; y < halfHeight; ++y) {
             const Rgb pixResult = TraceForPixel(x, y, polPtr, polCount,
                 lightsPtr, lightsCount);
             canvas.setPixel(x + halfWidth, halfHeight - y, pixResult);
         }
+
+        const float progress = float(x + halfWidth) / widthFloat;
+        emit progressChanged(progress);
     }
 }
