@@ -11,6 +11,11 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = RayBacktrace
 TEMPLATE = app
 
+# OpenMP support.
+msvc:QMAKE_CXXFLAGS += -openmp
+g++:QMAKE_CXXFLAGS += -fopenmp
+g++:QMAKE_CXXFLAGS += -openmp
+
 SOURCES += main.cpp\
     MainWindow.cpp \
     Polygon.cpp \
@@ -24,7 +29,8 @@ SOURCES += main.cpp\
     Delegate.cpp \
     LightsTable.cpp \
     Renderer.cpp \
-    SimpleRenderer.cpp
+    SimpleRenderer.cpp \
+    ParallelRenderer.cpp
 
 HEADERS  += MainWindow.h \
     Polygon.h \
@@ -42,7 +48,8 @@ HEADERS  += MainWindow.h \
     LightsTable.h \
     Canvas.h \
     Renderer.h \
-    SimpleRenderer.h
+    SimpleRenderer.h \
+    ParallelRenderer.h
 
 FORMS    += MainWindow.ui \
     AddPolygonDialog.ui \

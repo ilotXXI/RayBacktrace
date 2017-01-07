@@ -21,6 +21,7 @@
 #include "EditSceneDialog.h"
 #include "Canvas.h"
 #include "SimpleRenderer.h"
+#include "ParallelRenderer.h"
 
 static const char *pathSettingName = "filePath";
 static const char *geometrySettingName = "geometry";
@@ -70,7 +71,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_ui->editSceneAction, &QAction::triggered,
         this, &MainWindow::editScene);
 
-    setRenderer(QScopedPointer<Renderer>(new SimpleRenderer));
+//    setRenderer(QScopedPointer<Renderer>(new SimpleRenderer));
+    setRenderer(QScopedPointer<Renderer>(new ParallelRenderer));
     _workThread->start();
 }
 
