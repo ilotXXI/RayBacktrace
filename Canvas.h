@@ -14,21 +14,21 @@ public:
     const Rgb & pixel(int x, int y) const;
     void setPixel(int x, int y, const Rgb &color);
 
-    void clear();
+    void clear(const Rgb &fillColor = Rgb());
     bool isEmpty() const;
 
     size_t width() const;
     size_t height() const;
 
 private:
-    std::vector<Rgb>    _pixels;
-    size_t              _width;
-    size_t              _height;
+    std::vector<std::vector<Rgb>>   _pixels;
+    size_t                          _width;
+    size_t                          _height;
 };
 
 
 inline Canvas::Canvas(int width, int height, const Rgb &fillColor)
-    : _pixels(width * height, fillColor)
+    : _pixels(width, std::vector<Rgb>(height, fillColor))
     , _width(width)
     , _height(height)
 {
@@ -36,18 +36,19 @@ inline Canvas::Canvas(int width, int height, const Rgb &fillColor)
 
 inline const Rgb & Canvas::pixel(int x, int y) const
 {
-    return _pixels.at(x * _height + y);
+    return _pixels.at(x).at(y);
 }
 
 inline void Canvas::setPixel(int x, int y, const Rgb &color)
 {
     _ASSERT(0 <= x && x < int(_width) && 0 <= y && y < int(_height));
-    _pixels[x * _height + y] = color;
+    _pixels[x][y] = color;
 }
 
-inline void Canvas::clear()
+inline void Canvas::clear(const Rgb &fillColor)
 {
-    std::fill(_pixels.begin(), _pixels.end(), Rgb());
+    for (auto &row: _pixels)
+        std::fill(row.begin(), row.end(), fillColor);
 }
 
 inline bool Canvas::isEmpty() const
