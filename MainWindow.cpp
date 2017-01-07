@@ -180,17 +180,17 @@ void MainWindow::saveScene() const
     //Запись в файл многоугольников.
     for (const auto &polygon:    polygons)
     {
-        const int verticesCount = polygon.VerticesCount();
+        const int verticesCount = polygon.verticesCount();
 
         //Запись коэффициентов и кол-ва вершин очередного многоугольника.
-        stream << polygon.KaColor();
-        stream << polygon.KdColor();
-        stream << polygon.GetKs() << polygon.CosPower() << verticesCount;
+        stream << polygon.kaColor();
+        stream << polygon.kdColor();
+        stream << polygon.getKs() << polygon.cosPower() << verticesCount;
 
         //Запись координат вершин многоугольника.
         for (int vertInd = 0; vertInd < verticesCount; ++vertInd)
         {
-            const Point &pnt = polygon.Vertice(vertInd);
+            const Point &pnt = polygon.vertice(vertInd);
             stream << pnt.x;
             stream << pnt.y;
             stream << pnt.z;
