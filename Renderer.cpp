@@ -5,7 +5,6 @@ Renderer::Renderer(QObject *parent)
     , _canvas(1, 1)
 {
     qRegisterMetaType<Scene>("Scene");
-//    qRegisterMetaType<QSize>("QSize");
 }
 
 void Renderer::render(const Scene &scene, const QSize &size)

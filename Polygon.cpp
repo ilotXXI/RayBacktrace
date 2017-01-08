@@ -37,14 +37,14 @@ Polygon::Polygon(const std::vector<Point> &vertices, const Rgb &ka,
 }
 
  //Метод для определения, лежит ли точка в многоугольнике, если она лежит на его несущей плоскости.
-char Polygon::PointInPolygon(float x, float y, float z) const
+char Polygon::pointInPolygon(float x, float y, float z) const
 {
     int i, m;
     m = 0;
     //Определение, на какую плоскость можно спроецировать многоугольник и точку.
     if(fabs(_C) > EPSILON)
     {//Если несущая плоскость многоугольника не перпендикулярна плоскости XY, то многоугольник и точку можно спроецировать на неё.
-        switch (LineCross(x, y, _vertices.back().y, _vertices.front().x, _vertices.front().y,
+        switch (lineCross(x, y, _vertices.back().y, _vertices.front().x, _vertices.front().y,
                 _vertices[1].x, _vertices[1].y, _vertices[2].y))
         {
         case 1:  //Здесь стоит switch с 2 case'ами, потому что функция LineCross может возвращать также и значение 0, и в этом случае не нужно ничего делать.
@@ -59,7 +59,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
         for(i=1; i<n; ++i)
         {
             //Проверка, пересекает ли луч очередную сторону.
-            switch(LineCross(x, y, _vertices[i-1].y, _vertices[i].x, _vertices[i].y, _vertices[i+1].x,
+            switch(lineCross(x, y, _vertices[i-1].y, _vertices[i].x, _vertices[i].y, _vertices[i+1].x,
                     _vertices[i+1].y, _vertices[i+2].y))
             {
             case 1:
@@ -73,7 +73,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
         //Осталось проверить ещё 2 стороны.
         //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-        switch(LineCross(x, y, _vertices[n-1].y, _vertices[n].x, _vertices[n].y, _vertices[n+1].x,
+        switch(lineCross(x, y, _vertices[n-1].y, _vertices[n].x, _vertices[n].y, _vertices[n+1].x,
                 _vertices[n+1].y, _vertices[0].y))
         {
         case 1:
@@ -86,7 +86,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
         //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
         ++n;
-        switch(LineCross(x, y, _vertices[n-1].y, _vertices[n].x, _vertices[n].y, _vertices[0].x,
+        switch(lineCross(x, y, _vertices[n-1].y, _vertices[n].x, _vertices[n].y, _vertices[0].x,
                 _vertices[0].y, _vertices[1].y))
         {
         case 1:
@@ -105,7 +105,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
     //Продолжение определения плоскости проецирования.
     if(fabs(_B) > EPSILON)
     {//Если несущая плоскость многоугольника перпендикулярна плоскости XY, но не перпендикулярна плоскости XZ, то многоугольник и точку можно спроецировать на XZ.
-        switch(LineCross(x, z, _vertices.back().z, _vertices[0].x, _vertices[0].z, _vertices[1].x,
+        switch(lineCross(x, z, _vertices.back().z, _vertices[0].x, _vertices[0].z, _vertices[1].x,
                 _vertices[1].z, _vertices[2].z))
         {
         case 1:
@@ -118,7 +118,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
         int n = _vertices.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
         for(i=1; i<n; ++i)
         //Проверка, пересекает ли луч очередную сторону.
-        switch(LineCross(x, z, _vertices[i-1].z, _vertices[i].x, _vertices[i].z, _vertices[i+1].x,
+        switch(lineCross(x, z, _vertices[i-1].z, _vertices[i].x, _vertices[i].z, _vertices[i+1].x,
                 _vertices[i+1].z, _vertices[i+2].z))
         {
         case 1:
@@ -131,7 +131,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
         //Осталось проверить ещё 2 стороны.
         //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-        switch(LineCross(x, z, _vertices[n-1].z, _vertices[n].x, _vertices[n].z, _vertices[n+1].x, _vertices[n+1].z, _vertices[0].z))
+        switch(lineCross(x, z, _vertices[n-1].z, _vertices[n].x, _vertices[n].z, _vertices[n+1].x, _vertices[n+1].z, _vertices[0].z))
         {
         case 1:
             ++m;
@@ -143,7 +143,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
         //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
         ++n;
-        switch(LineCross(x, z, _vertices[n-1].z, _vertices[n].x, _vertices[n].z, _vertices[0].x, _vertices[0].z, _vertices[1].z))
+        switch(lineCross(x, z, _vertices[n-1].z, _vertices[n].x, _vertices[n].z, _vertices[0].x, _vertices[0].z, _vertices[1].z))
         {
         case 1:
             ++m;
@@ -160,7 +160,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
     //Последняя "стадия" определения плоскости проецирования.
     //Если несущая плоскость многоугольника перпендикулярна и плоскости XY, и плоскости XZ, то многоугольник и точку можно спроецировать на YZ.
-    switch(LineCross(y, z, _vertices.back().z, _vertices[0].y, _vertices[0].z, _vertices[1].y,
+    switch(lineCross(y, z, _vertices.back().z, _vertices[0].y, _vertices[0].z, _vertices[1].y,
             _vertices[1].z, _vertices[2].z))
     {
     case 1:
@@ -174,7 +174,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
     for(i=1; i<n; ++i)
     {
     //Проверка, пересекает ли луч очередную сторону.
-        switch(LineCross(y, z, _vertices[i-1].z, _vertices[i].y, _vertices[i].z, _vertices[i+1].y, _vertices[i+1].z, _vertices[i+2].z))
+        switch(lineCross(y, z, _vertices[i-1].z, _vertices[i].y, _vertices[i].z, _vertices[i+1].y, _vertices[i+1].z, _vertices[i+2].z))
         {
         case 1:
             ++m;
@@ -187,7 +187,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
     //Осталось проверить ещё 2 стороны.
     //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-    switch(LineCross(y, z, _vertices[n-1].z, _vertices[n].y, _vertices[n].z, _vertices[n+1].y, _vertices[n+1].z, _vertices[0].z))
+    switch(lineCross(y, z, _vertices[n-1].z, _vertices[n].y, _vertices[n].z, _vertices[n+1].y, _vertices[n+1].z, _vertices[0].z))
     {
     case 1:
         ++m;
@@ -199,7 +199,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 
     //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
     ++n;
-    switch(LineCross(y, z, _vertices[n-1].z, _vertices[n].y, _vertices[n].z, _vertices[0].y, _vertices[0].z, _vertices[1].z))
+    switch(lineCross(y, z, _vertices[n-1].z, _vertices[n].y, _vertices[n].z, _vertices[0].y, _vertices[0].z, _vertices[1].z))
     {
     case 1:
         ++m;
@@ -215,7 +215,7 @@ char Polygon::PointInPolygon(float x, float y, float z) const
 }
 
 //Метод для определения, пересекает ли луч сторону многоугольника.
-char Polygon::LineCross(const float &x, const float &y, const float &y0,
+char Polygon::lineCross(const float &x, const float &y, const float &y0,
                         const float &x1, const float &y1, const float &x2,
                         const float &y2, const float &y3) const
 {
@@ -271,7 +271,7 @@ char Polygon::LineCross(const float &x, const float &y, const float &y0,
 }
 
 //Метод для перемещения многоугольника.
-void Polygon::Replace(float x1, float y1, float z1)
+void Polygon::replace(float x1, float y1, float z1)
 {
     for (auto &vert: _vertices)
     {
@@ -294,7 +294,7 @@ void Polygon::Replace(float x1, float y1, float z1)
 }
 
 //Метод для поворота многоугольника.
-void Polygon::Rotate(float alpha, short axis)
+void Polygon::rotate(float alpha, short axis)
 {
     float old, sinAlpha, cosAlpha;
     sinAlpha = sin(alpha);
@@ -340,7 +340,7 @@ void Polygon::Rotate(float alpha, short axis)
 }
 
 //Метод для масштабирования многоугольника.
-void Polygon::Scale(float t)
+void Polygon::scale(float t)
 {
     for (auto &vert:    _vertices)
     {
@@ -363,7 +363,7 @@ void Polygon::Scale(float t)
 }
 
 //Метод для вычисления координат направляющего вектора отражённого луча.
-void Polygon::GetLine(const Line &l, Line &r) const
+void Polygon::getLine(const Line &l, Line &r) const
 {
     float q;
     q = l.a * _A  +  l.b * _B  +  l.c * _C;

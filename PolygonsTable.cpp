@@ -31,10 +31,10 @@ QVariant PolygonsTable::data(const QModelIndex &index, int role) const
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch (index.column()) {
         case Ks:
-            return QVariant(_polygons[row].GetKs());
+            return QVariant(_polygons[row].getKs());
             break;
         case Cpk:
-            return QVariant(_polygons[row].CosPower());
+            return QVariant(_polygons[row].cosPower());
             break;
         }
     }
@@ -43,14 +43,14 @@ QVariant PolygonsTable::data(const QModelIndex &index, int role) const
         switch (index.column()) {
         case Ka:
             {
-                const Rgb rgb = _polygons[row].KaColor();
+                const Rgb rgb = _polygons[row].kaColor();
                 return QBrush(QColor::fromRgbF(rgb.red(),
                     rgb.green(), rgb.blue()));
             }
             break;
         case Kd:
             {
-                const Rgb rgb = _polygons[row].KdColor();
+                const Rgb rgb = _polygons[row].kdColor();
                 return QBrush(QColor::fromRgbF(rgb.red(),
                     rgb.green(), rgb.blue()));
             }
@@ -81,7 +81,7 @@ bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
         {
             const QColor rgb = qvariant_cast<QColor>(value);
             const Rgb newRgb(rgb.redF(), rgb.greenF(), rgb.blueF());
-            pol.SetKaColor(newRgb);
+            pol.setKaColor(newRgb);
             return true;
         }
         return false;
@@ -91,7 +91,7 @@ bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
         {
             const QColor rgb = qvariant_cast<QColor>(value);
             const Rgb newRgb(rgb.redF(), rgb.greenF(), rgb.blueF());
-            pol.SetKdColor(newRgb);
+            pol.setKdColor(newRgb);
             return true;
         }
         return false;
@@ -99,13 +99,13 @@ bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
     case Ks:
         if (!value.canConvert<float>())
             return false;
-        pol.SetKs(value.toFloat());
+        pol.setKs(value.toFloat());
         return true;
         break;
     case Cpk:
         if (!value.canConvert<int>())
             return false;
-        pol.SetCosPower(value.toInt());
+        pol.setCosPower(value.toInt());
         return true;
         break;
     }

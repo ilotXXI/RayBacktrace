@@ -34,101 +34,101 @@ public:
     Polygon(const std::vector<Point> &vertices, const Rgb &_ka, const Rgb &_kd,
             float ksCoeff, int cosCoeff);
 
-    char PointInPolygon(float x, float y, float z) const;
-    char LineCross(const float &x, const float &y, const float &y0,
+    char pointInPolygon(float x, float y, float z) const;
+    char lineCross(const float &x, const float &y, const float &y0,
                    const float &x1, const float &y1, const float &x2,
                    const float &y2, const float &y3) const;
-    void Rotate(float alpha, short axis);
-    void Replace(float x1, float y1, float z1);
-    void Scale(float t);
-    void GetLine(const Line &l, Line &r) const;
+    void rotate(float alpha, short axis);
+    void replace(float x1, float y1, float z1);
+    void scale(float t);
+    void getLine(const Line &l, Line &r) const;
 
-    const Rgb &KaColor() const;
-    void SetKaColor(const Rgb &value);
-    const Rgb &KdColor() const;
-    void SetKdColor(const Rgb &value);
+    const Rgb &kaColor() const;
+    void setKaColor(const Rgb &value);
+    const Rgb &kdColor() const;
+    void setKdColor(const Rgb &value);
 
-    int VerticesCount() const;
-    const Point & Vertice(int index) const;
+    int verticesCount() const;
+    const Point & vertice(int index) const;
 
-    float GetA() const;
-    float GetB() const;
-    float GetC() const;
-    float GetD() const;
+    float getA() const;
+    float getB() const;
+    float getC() const;
+    float getD() const;
 
-    float GetKs() const;
-    void SetKs(float value);
-    int CosPower() const;
-    void SetCosPower(int value);
+    float getKs() const;
+    void setKs(float value);
+    int cosPower() const;
+    void setCosPower(int value);
 };
 
 
-inline float Polygon::GetA() const
+inline float Polygon::getA() const
 {
     return _A;
 }
 
-inline float Polygon::GetB() const
+inline float Polygon::getB() const
 {
     return _B;
 }
 
-inline float Polygon::GetC() const
+inline float Polygon::getC() const
 {
     return _C;
 }
 
-inline float Polygon::GetD() const
+inline float Polygon::getD() const
 {
     return _D;
 }
 
-inline float Polygon::GetKs() const
+inline float Polygon::getKs() const
 {
     return _ks;
 }
 
-inline int Polygon::CosPower() const
+inline int Polygon::cosPower() const
 {
     return _cosPow;
 }
 
-inline void Polygon::SetCosPower(int value)
+inline void Polygon::setCosPower(int value)
 {
     _cosPow = value;
 }
 
-inline void Polygon::SetKs(float value)
+inline void Polygon::setKs(float value)
 {
     _ks = value;
 }
 
-inline const Rgb & Polygon::KaColor() const
+inline const Rgb & Polygon::kaColor() const
 {
     return _ka;
 }
 
-inline void Polygon::SetKaColor(const Rgb &value)
+inline void Polygon::setKaColor(const Rgb &value)
 {
     _ka = value;
 }
 
-inline const Rgb & Polygon::KdColor() const
+inline const Rgb & Polygon::kdColor() const
 {
     return _kd;
 }
 
-inline void Polygon::SetKdColor(const Rgb &value)
+inline void Polygon::setKdColor(const Rgb &value)
 {
     _kd = value;
 }
 
-inline int Polygon::VerticesCount() const
+inline int Polygon::verticesCount() const
 {
     return _vertices.size();
 }
 
-inline const Point &Polygon::Vertice(int index) const
+inline const Point &Polygon::vertice(int index) const
 {
     return _vertices[index];
 }

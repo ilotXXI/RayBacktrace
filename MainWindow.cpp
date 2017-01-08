@@ -23,8 +23,8 @@
 #include "SimpleRenderer.h"
 #include "ParallelRenderer.h"
 
-static const char *pathSettingName = "filePath";
-static const char *geometrySettingName = "geometry";
+static const char *PATH_SETTING_NAME = "filePath";
+static const char *GEOMETRY_SETTING_NAME = "geometry";
 
 static inline std::unique_ptr<QSettings> settingsInst()
 {
@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     const std::unique_ptr<QSettings> settings = settingsInst();
     if (settings.get() != nullptr)
-        restoreGeometry(settings->value(geometrySettingName).toByteArray());
+        restoreGeometry(settings->value(GEOMETRY_SETTING_NAME).toByteArray());
 
     _progressBar->setMinimum(0);
     _progressBar->setMaximum(100);
@@ -80,7 +80,7 @@ MainWindow::~MainWindow()
 {
     const std::unique_ptr<QSettings> settings = settingsInst();
     if (settings.get() != nullptr)
-        settings->setValue(geometrySettingName, saveGeometry());
+        settings->setValue(GEOMETRY_SETTING_NAME, saveGeometry());
 
     if (_workThread->isRunning()) {
         _workThread->quit();
@@ -151,7 +151,7 @@ void MainWindow::saveScene() const
 {
     std::unique_ptr<QSettings> settings = settingsInst();
     const QString initialPath = (settings.get() != nullptr) ?
-        settings->value(pathSettingName).toString() : QString();
+        settings->value(PATH_SETTING_NAME).toString() : QString();
 
     const QString path =
         QFileDialog::getSaveFileName(const_cast<MainWindow *>(this),
@@ -209,14 +209,14 @@ void MainWindow::saveScene() const
 
     // Update settings.
     if (settings.get() != nullptr)
-        settings->setValue(pathSettingName, path);
+        settings->setValue(PATH_SETTING_NAME, path);
 }
 
 void MainWindow::loadScene()
 {
     std::unique_ptr<QSettings> settings = settingsInst();
     const QString initialPath = (settings.get() != nullptr) ?
-        settings->value(pathSettingName).toString() : QString();
+        settings->value(PATH_SETTING_NAME).toString() : QString();
 
     const QString path = QFileDialog::getOpenFileName(this,
         tr("Загрузить из файла..."), initialPath,
@@ -286,7 +286,7 @@ void MainWindow::loadScene()
 
     // Update settings.
     if (settings.get() != nullptr)
-        settings->setValue(pathSettingName, path);
+        settings->setValue(PATH_SETTING_NAME, path);
 }
 
 void MainWindow::addPolygon()
