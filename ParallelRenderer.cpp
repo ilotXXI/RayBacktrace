@@ -2,9 +2,18 @@
 
 #include <QAtomicInt>
 
+#include <QCoreApplication>
 #include <omp.h>
 
 #include "RenderUtilities.h"
+
+static inline bool isGuiThread(const QThread *thread)
+{
+    const QCoreApplication *app = QCoreApplication::instance();
+    if (app == nullptr)
+        return false;
+    return thread != app->thread();
+}
 
 ParallelRenderer::ParallelRenderer(QObject *parent)
     : Renderer(parent)
@@ -24,11 +33,14 @@ void ParallelRenderer::performRendering(const Scene &scene, Canvas &canvas)
     const int halfWidth = canvas.width() / 2;
     const int halfHeight = canvas.height() / 2;
     const float widthFloat = float(canvas.width());
+
     QAtomicInt counter(0);
+    const bool progressNotifiable = isGuiThread(thread());
 
     #pragma omp parallel
     {
-        const bool isEmitterThread = (omp_get_thread_num() == 0);
+        const bool isEmitterThread = progressNotifiable &&
+            (omp_get_thread_num() == 0);
 
         #pragma omp for nowait
         for (int x = - halfWidth; x < halfWidth; ++x) {

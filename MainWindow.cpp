@@ -320,7 +320,7 @@ void MainWindow::handleRenderStart()
 {
     setEnabled(false);
 
-    _progressBar->setVisible(true);
+    _progressBar->setVisible(false);
     _progressBar->setValue(0);
     statusBar()->showMessage(tr("Рендеринг начат"));
 }
@@ -340,6 +340,8 @@ void MainWindow::handleRenderFinish()
 
 void MainWindow::updateRenderProgress(float weight)
 {
+    if (_progressBar->isHidden())
+        _progressBar->setVisible(true);
     _progressBar->setValue(weight * 100.f + 0.5f);
 }
 
