@@ -183,8 +183,8 @@ void MainWindow::saveScene() const
         const int verticesCount = polygon.verticesCount();
 
         //Запись коэффициентов и кол-ва вершин очередного многоугольника.
-        stream << polygon.kaColor();
-        stream << polygon.kdColor();
+        stream << polygon.diffusionWeights();
+        stream << polygon.reflectionWeights();
         stream << polygon.getKs() << polygon.cosPower() << verticesCount;
 
         //Запись координат вершин многоугольника.

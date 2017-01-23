@@ -56,12 +56,4 @@ FORMS    += MainWindow.ui \
     AddLightDialog.ui \
     EditSceneDialog.ui
 
-DISTFILES += \
-    Unit1.cpp \
-    Unit3.cpp \
-    Unit4.cpp \
-    Unit5.cpp \
-    Unit1.h \
-    Unit3.h \
-    Unit4.h \
-    Unit5.h
+DISTFILES +=

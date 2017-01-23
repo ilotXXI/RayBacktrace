@@ -11,27 +11,8 @@ class SpotLight;
 
 class Polygon
 {
-private:
-    std::vector<Point>  _vertices;
-
-    //Степень косинуса для зеркальной составляющей освещённости.
-    int                 _cosPow;
-
-    // Коэффициенты рассеивания.
-    Rgb                 _ka;
-    // Коэффициенты отражения.
-    Rgb                 _kd;
-
-    float               _ks;
-
-    //Коэффициенты уравнения несущей плоскости.
-    float               _A;
-    float               _B;
-    float               _C;
-    float               _D;
-
 public:
-    Polygon(const std::vector<Point> &vertices, const Rgb &_ka, const Rgb &_kd,
+    Polygon(const std::vector<Point> &vertices, const Rgb &_diffusion, const Rgb &_reflection,
             float ksCoeff, int cosCoeff);
 
     char pointInPolygon(float x, float y, float z) const;
@@ -41,15 +22,14 @@ public:
     void rotate(float alpha, short axis);
     void replace(float x1, float y1, float z1);
     void scale(float t);
-    void getLine(const Line &l, Line &r) const;
 
-    const Rgb &kaColor() const;
-    void setKaColor(const Rgb &value);
-    const Rgb &kdColor() const;
-    void setKdColor(const Rgb &value);
+    Rgb diffusionWeights() const;
+    void setDiffusionWeights(const Rgb &value);
+    Rgb reflectionWeights() const;
+    void setReflectionWeights(const Rgb &value);
 
     int verticesCount() const;
-    const Point & vertice(int index) const;
+    Point vertice(int index) const;
 
     float getA() const;
     float getB() const;
@@ -60,6 +40,23 @@ public:
     void setKs(float value);
     int cosPower() const;
     void setCosPower(int value);
+
+private:
+    std::vector<Point>  _vertices;
+
+    //Степень косинуса для зеркальной составляющей освещённости.
+    int                 _cosPow;
+
+    Rgb                 _diffusion;
+    Rgb                 _reflection;
+
+    float               _ks;
+
+    //Коэффициенты уравнения несущей плоскости.
+    float               _A;
+    float               _B;
+    float               _C;
+    float               _D;
 };
 
 
@@ -103,24 +100,24 @@ inline void Polygon::setKs(float value)
     _ks = value;
 }
 
-inline const Rgb & Polygon::kaColor() const
+inline Rgb Polygon::diffusionWeights() const
 {
-    return _ka;
+    return _diffusion;
 }
 
-inline void Polygon::setKaColor(const Rgb &value)
+inline void Polygon::setDiffusionWeights(const Rgb &value)
 {
-    _ka = value;
+    _diffusion = value;
 }
 
-inline const Rgb & Polygon::kdColor() const
+inline Rgb Polygon::reflectionWeights() const
 {
-    return _kd;
+    return _reflection;
 }
 
-inline void Polygon::setKdColor(const Rgb &value)
+inline void Polygon::setReflectionWeights(const Rgb &value)
 {
-    _kd = value;
+    _reflection = value;
 }
 
 inline int Polygon::verticesCount() const
@@ -128,7 +125,7 @@ inline int Polygon::verticesCount() const
     return _vertices.size();
 }
 
-inline const Point &Polygon::vertice(int index) const
+inline Point Polygon::vertice(int index) const
 {
     return _vertices[index];
 }

@@ -15,8 +15,8 @@ Polygon::Polygon(const std::vector<Point> &vertices, const Rgb &ka,
                  const Rgb &kd, float ksCoeff, int cosCoeff)
     : _vertices(vertices)
     , _cosPow(cosCoeff)
-    , _ka(ka)
-    , _kd(kd)
+    , _diffusion(ka)
+    , _reflection(kd)
     , _ks(ksCoeff)
 {
     //Вычисление коэффициентов для уравнения несущей плоскости.
@@ -360,15 +360,4 @@ void Polygon::scale(float t)
     _B /= _D;
     _C /= _D;
     _D = -(_A*_vertices[0].x + _B*_vertices[0].y + _C*_vertices[0].z);
-}
-
-//Метод для вычисления координат направляющего вектора отражённого луча.
-void Polygon::getLine(const Line &l, Line &r) const
-{
-    float q;
-    q = l.a * _A  +  l.b * _B  +  l.c * _C;
-    q += q;             // q = 2*(L; n).
-    r.a = l.a - q*_A;
-    r.b = l.b - q*_B;
-    r.c = l.c - q*_C;    // R = -L + q*n.
 }

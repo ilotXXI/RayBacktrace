@@ -10,11 +10,9 @@ struct Line;
 class SpotLight;
 class Rgb;
 
-void Draw(Canvas &canvas, const Polygon *obj, int np,
-          const SpotLight *light, int nl);
-Rgb TraceForPixel(int pixX, int pixY, const Polygon *obj, int np,
-                  const SpotLight *light, int nl);
-void Trace(Line &l, const Polygon *obj, int np, const SpotLight *light,
-           int nl, float &R, float &G, float &B, short looked_lines);
+Rgb TraceForPixel(int pixX, int pixY, const Polygon *polygons, int polCount,
+                  const SpotLight *lights, int lightsCount);
+void Trace(Line &ray, const Polygon *polygons, int polCount, const SpotLight *lights,
+           int lightsCount, float &R, float &G, float &B, short lookCount);
 //---------------------------------------------------------------------------
 #endif

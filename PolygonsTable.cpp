@@ -43,14 +43,14 @@ QVariant PolygonsTable::data(const QModelIndex &index, int role) const
         switch (index.column()) {
         case Ka:
             {
-                const Rgb rgb = _polygons[row].kaColor();
+                const Rgb rgb = _polygons[row].diffusionWeights();
                 return QBrush(QColor::fromRgbF(rgb.red(),
                     rgb.green(), rgb.blue()));
             }
             break;
         case Kd:
             {
-                const Rgb rgb = _polygons[row].kdColor();
+                const Rgb rgb = _polygons[row].reflectionWeights();
                 return QBrush(QColor::fromRgbF(rgb.red(),
                     rgb.green(), rgb.blue()));
             }
@@ -81,7 +81,7 @@ bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
         {
             const QColor rgb = qvariant_cast<QColor>(value);
             const Rgb newRgb(rgb.redF(), rgb.greenF(), rgb.blueF());
-            pol.setKaColor(newRgb);
+            pol.setDiffusionWeights(newRgb);
             return true;
         }
         return false;
@@ -91,7 +91,7 @@ bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
         {
             const QColor rgb = qvariant_cast<QColor>(value);
             const Rgb newRgb(rgb.redF(), rgb.greenF(), rgb.blueF());
-            pol.setKdColor(newRgb);
+            pol.setReflectionWeights(newRgb);
             return true;
         }
         return false;
