@@ -9,32 +9,47 @@
 #include "Line.h"
 #include "SpotLight.h"
 
-#define EPSILON                 0.0005
-#define VISOR_Z                 1200
-#define DISPLAY_Z               500
-#define Ia                      150
-#define K_KOEFFICIENT           0.01f
-#define B_KOEFFICIENT           0.001f
-#define MAX_LOOKED_LINES_CNT    20
+#define EPSILON                     0.0005
+#define VISOR_Z                     1200
+#define DISPLAY_Z                   500
+#define DIFFUSED_LIGHT_INTENSIVITY  150
+#define K_KOEFFICIENT               0.01f
+#define B_KOEFFICIENT               0.001f
+#define MAX_LOOKED_RAYS_CNT         20
 
-static void GetIntensivity(const float &x, const float &y, const float &z,
-                           const Polygon *obj, const int &np,
-                           const SpotLight *light,
-                           const int &nl, float &R, float &G, float &B,
-                           const int &cross_pol_n, const Line &l);
-// If no cross is found the crossedPolInd is negative.
-static float CrossingParameter(const Line &l, const Polygon *obj,
-                               int np, int &crossedPolInd);
-static Line reflectedRay(const Polygon &from, const Line &instRay,
+static void CalcIntensivity(const float &x, const float &y, const float &z,
+                           const Polygon *polygons, int polygonsCount,
+                           const SpotLight *lights,
+                           int lightsCount, float &R, float &G, float &B,
+                           int polInd, const Line &ray);
+//Возвращает false, если луч не пересекает ни одного прямоугольника.
+static bool ClosestCross(const Line &ray, const Polygon *polygons,
+                         int polygonsCount, int &crossedPolInd,
+                         float &lineCrossParameter);
+static bool AnyCross(const Line &ray, const Polygon *polygons,
+                     int polygonsCount, int &crossedPolInd,
+                     float &lineCrossParameter);
+static bool HasAnyCross(const Line &ray, const Polygon *polygons,
+                        int polygonsCount);
+static bool LineCrossesPolygonPlane(const Line &line, const Polygon &polygon,
+                                    float &crossParameter);
+static Line ReflectedRay(const Polygon &from, const Line &instRay,
                          const Point &reflectionPoint);
+//Направляющий вектор line должен быть нормирован к 1.
+static Point LinePoint(const Line &line, float parameter);
 
-//Функция вычисления натуральной степени числа.
-float Raise(float base, int power)
+static float Raise(float base, int power)
 {
     float y = base;
     for (int i = 1; i < power; ++i)
         y *= base;
     return y;
+}
+
+static inline void Constrain(float &color)
+{
+    if (color < - EPSILON || color > 255.f)
+        color = 255.f;
 }
 
 Rgb TraceForPixel(int pixX, int pixY, const Polygon *polygons, int polCount,
@@ -49,13 +64,9 @@ Rgb TraceForPixel(int pixX, int pixY, const Polygon *polygons, int polCount,
     float R, G, B;
     Trace(ray, polygons, polCount, lights, lightsCount, R, G, B, 0);
 
-    //Закраска пикселя вычисленным цветом.
-    if (R > 255  ||  R < 0)
-        R = 255;
-    if (G > 255  ||  G < 0)
-        G = 255;
-    if (B > 255  ||  B < 0)
-        B = 255;
+    Constrain(R);
+    Constrain(G);
+    Constrain(B);
 
     return Rgb(R, G, B);
 }
@@ -65,23 +76,22 @@ void Trace(Line &ray, const Polygon *polygons, int polCount,
            const SpotLight *lights, int lightsCount,
            float &R, float &G, float &B, short lookCount)
 {
-    float Rotr, Gotr, Botr;
+    float reflectR = 0.f;
+    float reflectG = 0.f;
+    float reflectB = 0.f;
     int crossedPolInd = 0;
 
-    //+Определение пересечения луча l.
-    const float t = CrossingParameter(ray, polygons, polCount, crossedPolInd);
-    if (crossedPolInd < 0) {
-        //Если нет пересечения.
+    float t = 0.f;
+    const bool rayHasCrosses = ClosestCross(ray, polygons, polCount,
+        crossedPolInd, t);
+    if (!rayHasCrosses) {
         R = G = B = 0;
         return;
     }
 
-    //+Вычисление непосредственной освещённости.
-    //Предварительные вычисления.
     const Point crossPoint = {ray.x0 + ray.a * t,
         ray.y0 + ray.b * t, ray.z0 + ray.c * t};
 
-    //Нормирование направляющего вектора исходного луча.
     const float directingNorm = ray.directingVectorAbs();
     if (directingNorm > 0.f) {
         ray.a /= directingNorm;
@@ -89,40 +99,29 @@ void Trace(Line &ray, const Polygon *polygons, int polCount,
         ray.c /= directingNorm;
     }
 
-    //Вычисление интенсивности.
-    GetIntensivity(crossPoint.x, crossPoint.y, crossPoint.z, polygons, polCount,
+    CalcIntensivity(crossPoint.x, crossPoint.y, crossPoint.z, polygons, polCount,
         lights, lightsCount, R, G, B, crossedPolInd, ray);
 
     //TODO: трассировка для преломлённого луча.
 
-    if(lookCount < MAX_LOOKED_LINES_CNT)
-    {
-        //+Формирование отражённого луча.
+    if(lookCount < MAX_LOOKED_RAYS_CNT) {
         Line reflRay =
-            reflectedRay(polygons[crossedPolInd], ray, crossPoint);
-        //+Его трассировка.
+            ReflectedRay(polygons[crossedPolInd], ray, crossPoint);
         Trace(reflRay, polygons, polCount, lights, lightsCount,
-            Rotr, Gotr, Botr, lookCount + 1);
+            reflectR, reflectG, reflectB, lookCount + 1);
 
-        //Обработка полученных интенсивностей.
         const float ks = polygons[crossedPolInd].getKs();
-        Rotr *= ks;
-        Gotr *= ks;
-        Botr *= ks;
-        if(Rotr < -EPSILON  ||  Rotr > 255)
-            Rotr = 255;
-        if(Gotr < -EPSILON  ||  Gotr > 255)
-            Gotr = 255;
-        if(Botr < -EPSILON  ||  Botr > 255)
-            Botr = 255;
-    }
-    else
-    {
-        //Если рассмотрено слишком много лучей, то формировать и
-        //трассировать новые отражённые лучи не будем.
-        Rotr = 0;
-        Gotr = 0;
-        Botr = 0;
+        reflectR *= ks;
+        reflectG *= ks;
+        reflectB *= ks;
+        Constrain(reflectR);
+        Constrain(reflectG);
+        Constrain(reflectB);
+    } else {
+        //Достигнута предельная глубина.
+        reflectR = 0;
+        reflectG = 0;
+        reflectB = 0;
     }
 
     /*  Iотр = Is * ks;
@@ -130,9 +129,9 @@ void Trace(Line &ray, const Polygon *polygons, int polCount,
         I = Ih * exp(-b * d)
     */
     //TODO: добавить составляющие преломления.
-    R += Rotr;
-    G += Gotr;
-    B += Botr;
+    R += reflectR;
+    G += reflectG;
+    B += reflectB;
 
     const float dist = directingNorm * t;
     const float attenuation = exp(- B_KOEFFICIENT * dist);
@@ -142,38 +141,96 @@ void Trace(Line &ray, const Polygon *polygons, int polCount,
     B *= attenuation;
 }
 
-//Функция определения параметра и номера для пересечения луча с многоугольником.
-float CrossingParameter(const Line &l, const Polygon *obj, int np, int &crossedPolInd)
+bool ClosestCross(const Line &ray, const Polygon *polygons,
+                  int polygonsCount, int &crossedPolInd,
+                  float &lineCrossParameter)
 {
-    float tmin = std::numeric_limits<float>::max();
+    lineCrossParameter = 0.f;
     crossedPolInd = - 1;
+    float tmin = std::numeric_limits<float>::max();
     bool isFound = false;
 
-    for (int i=0; i<np; ++i)
-    {
-        float t =
-            obj[i].getA() * l.a  +  obj[i].getB() * l.b  +  obj[i].getC() * l.c;
-        if (t != 0)
-        {
-            t = - (obj[i].getA() * l.x0  +  obj[i].getB() * l.y0  +
-                obj[i].getC() * l.z0  +  obj[i].getD()) / t;
+    for (int i = 0; i < polygonsCount; ++i) {
+        const Polygon &pol = polygons[i];
 
-            if (t > EPSILON  &&  t < tmin)  //Если найдено пересечение с несущей плоскостью, и оно ближе остальных найденных на данный момент пересечений.
-                //+Уточнение, пересекает ли луч многоугольник.
-                if (obj[i].pointInPolygon(l.x0 + l.a*t,
-                        l.y0 + l.b*t, l.z0 + l.c*t))
-                {
-                    tmin = t;
-                    crossedPolInd = i;
-                    isFound = true;
-                }
+        float crossParam = 0.f;
+        const bool planeIsCrossed = LineCrossesPolygonPlane(ray, pol, crossParam);
+
+        if (!planeIsCrossed || crossParam < EPSILON || crossParam > tmin) {
+            //Нет пересечения в прямом направлении, либо уже найдены
+            //более близкие многоугольники.
+            continue;
+        }
+
+        const Point crossPoint = LinePoint(ray, crossParam);
+        if (pol.pointIsInPolygon(crossPoint)) {
+            tmin = crossParam;
+            crossedPolInd = i;
+            isFound = true;
         }
     }
 
-    return isFound ? tmin : (- 1.f);
+    lineCrossParameter = tmin;
+    return isFound;
 }
 
-Line reflectedRay(const Polygon &from, const Line &instRay,
+bool AnyCross(const Line &ray, const Polygon *polygons,
+              int polygonsCount, int &crossedPolInd,
+              float &lineCrossParameter)
+{
+    lineCrossParameter = 0.f;
+    crossedPolInd = - 1;
+    bool isFound = false;
+
+    for (int i = 0; i < polygonsCount; ++i) {
+        const Polygon &pol = polygons[i];
+
+        float crossParam = 0.f;
+        const bool planeIsCrossed = LineCrossesPolygonPlane(ray, pol, crossParam);
+
+        if (!planeIsCrossed || crossParam < EPSILON) {
+            //Нет пересечения в прямом направлении, либо уже найдены
+            //более близкие многоугольники.
+            continue;
+        }
+
+        const Point crossPoint = LinePoint(ray, crossParam);
+        if (pol.pointIsInPolygon(crossPoint)) {
+            lineCrossParameter = crossParam;
+            crossedPolInd = i;
+            isFound = true;
+        }
+    }
+
+    return isFound;
+}
+
+inline bool HasAnyCross(const Line &ray, const Polygon *polygons,
+                        int polygonsCount)
+{
+    int ind = 0;
+    float param = 0.f;
+    return AnyCross(ray, polygons, polygonsCount, ind, param);
+}
+
+inline bool LineCrossesPolygonPlane(const Line &line, const Polygon &polygon,
+                                    float &crossParameter)
+{
+    const float normalToRay =
+        polygon.getA() * line.a +
+        polygon.getB() * line.b +
+        polygon.getC() * line.c;
+
+    if (abs(normalToRay) < 1E-8)
+        return false;
+
+    crossParameter = - (polygon.getA() * line.x0 +
+        polygon.getB() * line.y0 + polygon.getC() * line.z0 +
+        polygon.getD()) / normalToRay;
+    return true;
+}
+
+Line ReflectedRay(const Polygon &from, const Line &instRay,
                   const Point &reflectionPoint)
 {
     Line res;
@@ -193,121 +250,85 @@ Line reflectedRay(const Polygon &from, const Line &instRay,
     return res;
 }
 
-//Функция вычисления непосредственной освещённости.
-void GetIntensivity(const float &x, const float &y, const float &z,
-                    const Polygon *obj, const int &np, const SpotLight *light,
-                    const int &nl, float &R, float &G, float &B,
-                    const int &cross_pol_n, const Line &l)
+inline Point LinePoint(const Line &line, float parameter)
 {
-    char flag;
-    Line line_to_light;
-    float t, cosT, d, cosA;
-    int i, j;
+    return Point{line.x0 + line.a * parameter,
+        line.y0 + line.b * parameter,
+        line.z0 + line.c * parameter};
+}
 
+void CalcIntensivity(const float &x, const float &y, const float &z,
+                     const Polygon *polygons, int polygonsCount,
+                     const SpotLight *lights, int lightsCount,
+                     float &R, float &G, float &B,
+                     int polInd, const Line &ray)
+{
     //Вычисление рассеянной составляющей.
-    const Rgb diffusedRgb = obj[cross_pol_n].diffusionWeights();
-    R = Ia * diffusedRgb.red();
-    G = Ia * diffusedRgb.green();
-    B = Ia * diffusedRgb.blue();
+    const Rgb diffusedRgb = polygons[polInd].diffusionWeights();
+    R = DIFFUSED_LIGHT_INTENSIVITY * diffusedRgb.red();
+    G = DIFFUSED_LIGHT_INTENSIVITY * diffusedRgb.green();
+    B = DIFFUSED_LIGHT_INTENSIVITY * diffusedRgb.blue();
 
     //Вычисления составлющих от диффузионного рассеивания и зеркального отражения.
-    line_to_light.x0 = x;
-    line_to_light.y0 = y;
-    line_to_light.z0 = z;
-    for (i=0; i<nl; ++i)          //Перебор источников света.
-    {
+    Line rayToLight;
+    rayToLight.x0 = x;
+    rayToLight.y0 = y;
+    rayToLight.z0 = z;
+
+    const Polygon *firstPolBegin = polygons;
+    const int firstPolCount = polInd;
+    const Polygon *secondPolBegin = polygons + polInd + 1;
+    const int secondPolCount = polygonsCount - polInd - 1;
+
+    for (int i = 0; i < lightsCount; ++i) {
         //формирование луча от рассматриваемой точки до источника света.
-        line_to_light.a = light[i].x() - x;
-        line_to_light.b = light[i].y() - y;
-        line_to_light.c = light[i].z() - z;
+        rayToLight.a = lights[i].x() - x;
+        rayToLight.b = lights[i].y() - y;
+        rayToLight.c = lights[i].z() - z;
 
         //Поиск пересечения луча с другими объектами сцены.
-        flag = 1;
-        for (j=0; j<cross_pol_n; ++j)       //Перебор многоугольников.
-        {
-            t = obj[j].getA() * line_to_light.a  +
-                obj[j].getB() * line_to_light.b  +
-                obj[j].getC() * line_to_light.c;
-            if (t != 0)
-            {
-                t = -(obj[j].getA() * line_to_light.x0  +
-                    obj[j].getB() * line_to_light.y0  +
-                    obj[j].getC() * line_to_light.z0  +  obj[j].getD())/t;
-                if (t > EPSILON  &&  t < 1)      // ~t>0.
-                    //+Уточнение, пересекает ли луч многоугольник.
-                    if (obj[j].pointInPolygon(
-                            line_to_light.x0 + line_to_light.a*t,
-                            line_to_light.y0 + line_to_light.b*t,
-                            line_to_light.z0 + line_to_light.c*t))
-                    {
-                        flag = 0;
-                        break;
-                    }
-            }
-        }
-        if (flag)
-            for (++j; j<np; ++j)    //Перебор оставшихся многоугольников.
-            {
-                t = obj[j].getA() * line_to_light.a  +
-                    obj[j].getB() * line_to_light.b  +
-                    obj[j].getC() * line_to_light.c;
-                if (t != 0)
-                {
-                    t = -(obj[j].getA() * line_to_light.x0  +
-                        obj[j].getB() * line_to_light.y0  +
-                        obj[j].getC() * line_to_light.z0  +  obj[j].getD())/t;
-                    if (t > EPSILON  &&  t < 1)      // ~t>0.
-                        //+Уточнение, пересекает ли луч многоугольник.
-                        if (obj[j].pointInPolygon(line_to_light.x0 + line_to_light.a*t,  line_to_light.y0 + line_to_light.b*t,  line_to_light.z0 + line_to_light.c*t))
-                        {
-                            flag = 0;
-                            break;
-                        }
-                }
-            }
-        else
+        const bool lightIsScreened =
+            HasAnyCross(rayToLight, firstPolBegin, firstPolCount) ||
+            HasAnyCross(rayToLight, secondPolBegin, secondPolCount);
+        if (lightIsScreened)
             continue;
-        if (flag) //Если луч не пересекает ни одного многоугольника.
-        {
-            //Поиск косинуса угла между нормалью к многоугольнику и лучём.
-            //Норму line_to_light пока запомним в cosA, т.к. она нам понадобится.
-            cosA = line_to_light.directingVectorAbs();
-            cosT = obj[cross_pol_n].getA() * line_to_light.a  +
-                obj[cross_pol_n].getB() * line_to_light.b  +
-                obj[cross_pol_n].getC() * line_to_light.c;
-            cosT /= sqrt(obj[cross_pol_n].getA()*obj[cross_pol_n].getA() +
-                obj[cross_pol_n].getB()*obj[cross_pol_n].getB() +
-                obj[cross_pol_n].getC()*obj[cross_pol_n].getC())  *  cosA;
 
-            //Вычисление освещённости диффузионно отражённого света от i-го источника.
-            d = line_to_light.directingVectorAbs();
-            t = cosT * light[i].Intensivity() / (d + K_KOEFFICIENT);
+        //Поиск косинуса угла между нормалью к многоугольнику и лучём.
+        const float rayToLAbs = rayToLight.directingVectorAbs();
+        float cosT = polygons[polInd].getA() * rayToLight.a  +
+            polygons[polInd].getB() * rayToLight.b  +
+            polygons[polInd].getC() * rayToLight.c;
+        cosT /= sqrt(polygons[polInd].getA()*polygons[polInd].getA() +
+            polygons[polInd].getB()*polygons[polInd].getB() +
+            polygons[polInd].getC()*polygons[polInd].getC())  *  rayToLAbs;
 
-            const Rgb reflectedRgb = obj[cross_pol_n].reflectionWeights();
-            R += reflectedRgb.red() * t;
-            G += reflectedRgb.green() * t;
-            B += reflectedRgb.blue() * t;
+        //Вычисление освещённости диффузионно отражённого света от i-го источника.
+        const float d = rayToLight.directingVectorAbs();
+        const float t = cosT * lights[i].Intensivity() / (d + K_KOEFFICIENT);
 
-            //Вычисление освещённости зеркально отражённого света от i-го источника.
-            //Нормирование вектора line_to_light.
-            line_to_light.a /= cosA;
-            line_to_light.b /= cosA;
-            line_to_light.c /= cosA;
-            //Формирование направляющего вектора луча, зеркально отражённого от line_to_light.
-            cosT += cosT;
-            line_to_light.a = cosT * obj[cross_pol_n].getA()  -  line_to_light.a;
-            line_to_light.b = cosT * obj[cross_pol_n].getB()  -  line_to_light.b;
-            line_to_light.c = cosT * obj[cross_pol_n].getC()  -  line_to_light.c;
-            //Вычисление косинуса угла между отражённым лучом и исходным лучом l.
-            cosA = l.a * line_to_light.a  +  l.b * line_to_light.b  +
-                l.c * line_to_light.c;
-            //Вычисление освещённости зеркально отражённого света.
-            cosA = Raise(fabs(cosA), obj[cross_pol_n].cosPower()) *
-                obj[cross_pol_n].getKs() *
-                light[i].Intensivity() / (d + K_KOEFFICIENT);
-            R += cosA;
-            G += cosA;
-            B += cosA;
-        }
+        const Rgb reflectedRgb = polygons[polInd].reflectionWeights();
+        R += reflectedRgb.red() * t;
+        G += reflectedRgb.green() * t;
+        B += reflectedRgb.blue() * t;
+
+        //Вычисление освещённости зеркально отражённого света от i-го источника.
+        rayToLight.a /= rayToLAbs;
+        rayToLight.b /= rayToLAbs;
+        rayToLight.c /= rayToLAbs;
+        //Формирование направляющего вектора луча, зеркально отражённого от rayToLight.
+        cosT += cosT;
+        rayToLight.a = cosT * polygons[polInd].getA()  -  rayToLight.a;
+        rayToLight.b = cosT * polygons[polInd].getB()  -  rayToLight.b;
+        rayToLight.c = cosT * polygons[polInd].getC()  -  rayToLight.c;
+        //Вычисление косинуса угла между отражённым лучом и исходным лучом l.
+        float cosA = ray.a * rayToLight.a  +  ray.b * rayToLight.b  +
+            ray.c * rayToLight.c;
+        //Вычисление освещённости зеркально отражённого света.
+        cosA = Raise(fabs(cosA), polygons[polInd].cosPower()) *
+            polygons[polInd].getKs() *
+            lights[i].Intensivity() / (d + K_KOEFFICIENT);
+        R += cosA;
+        G += cosA;
+        B += cosA;
     }
 }

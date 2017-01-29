@@ -37,8 +37,9 @@ Polygon::Polygon(const std::vector<Point> &vertices, const Rgb &ka,
 }
 
  //Метод для определения, лежит ли точка в многоугольнике, если она лежит на его несущей плоскости.
-char Polygon::pointInPolygon(float x, float y, float z) const
+bool Polygon::pointIsInPolygon(float x, float y, float z) const
 {
+    // TODO: refactoring.
     int i, m;
     m = 0;
     //Определение, на какую плоскость можно спроецировать многоугольник и точку.
@@ -51,7 +52,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
           ++m;
           break;
         case -1:
-          return 1;
+          return true;
         }
 
         int n = _vertices.size();
@@ -67,7 +68,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
                 break;
             case -1:
                 n += 2;
-                return 1;
+                return true;
             }
         }
 
@@ -81,7 +82,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
             break;
         case -1:
             n += 2;
-            return 1;
+            return true;
         }
 
         //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
@@ -94,12 +95,12 @@ char Polygon::pointInPolygon(float x, float y, float z) const
           break;
         case -1:
           ++n;
-          return 1;
+          return true;
         }
 
         //Теперь нужно восстановить число углов многоугольника и вернуть результат.
         ++n;
-        return m % 2;
+        return (m % 2) ? true : false;
     }
 
     //Продолжение определения плоскости проецирования.
@@ -112,7 +113,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
           ++m;
           break;
         case -1:
-          return 1;
+          return true;
         }
 
         int n = _vertices.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
@@ -126,7 +127,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
             break;
         case -1:
             n += 2;
-            return 1;
+            return true;
         }
 
         //Осталось проверить ещё 2 стороны.
@@ -138,7 +139,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
             break;
         case -1:
             n += 2;
-            return 1;
+            return true;
         }
 
         //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
@@ -150,12 +151,12 @@ char Polygon::pointInPolygon(float x, float y, float z) const
             break;
         case -1:
             ++n;
-            return 1;
+            return true;
         }
 
         //Теперь нужно восстановить число углов многоугольника и вернуть результат.
         ++n;
-        return m % 2;
+        return (m % 2) ? true : false;
     }
 
     //Последняя "стадия" определения плоскости проецирования.
@@ -167,7 +168,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
         ++m;
         break;
     case -1:
-        return 1;
+        return true;
     }
 
     int n = _vertices.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
@@ -181,7 +182,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
             break;
         case -1:
             n += 2;
-            return 1;
+            return true;
         }
     }
 
@@ -194,7 +195,7 @@ char Polygon::pointInPolygon(float x, float y, float z) const
         break;
     case -1:
         n += 2;
-        return 1;
+        return true;
     }
 
     //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
@@ -206,12 +207,12 @@ char Polygon::pointInPolygon(float x, float y, float z) const
         break;
     case -1:
         ++n;
-        return 1;
+        return true;
     }
 
     //Теперь нужно восстановить число углов многоугольника и вернуть результат.
     ++n;
-    return m % 2;
+    return (m % 2) ? true : false;
 }
 
 //Метод для определения, пересекает ли луч сторону многоугольника.

@@ -15,7 +15,8 @@ public:
     Polygon(const std::vector<Point> &vertices, const Rgb &_diffusion, const Rgb &_reflection,
             float ksCoeff, int cosCoeff);
 
-    char pointInPolygon(float x, float y, float z) const;
+    bool pointIsInPolygon(const Point &point) const;
+    bool pointIsInPolygon(float x, float y, float z) const;
     char lineCross(const float &x, const float &y, const float &y0,
                    const float &x1, const float &y1, const float &x2,
                    const float &y2, const float &y3) const;
@@ -98,6 +99,11 @@ inline void Polygon::setCosPower(int value)
 inline void Polygon::setKs(float value)
 {
     _ks = value;
+}
+
+inline bool Polygon::pointIsInPolygon(const Point &point) const
+{
+    return pointIsInPolygon(point.x, point.y, point.z);
 }
 
 inline Rgb Polygon::diffusionWeights() const
