@@ -41,6 +41,7 @@ AddPolygonDialog::~AddPolygonDialog()
 
 Polygon AddPolygonDialog::polygon() const
 {
+    // TODO: check to at least 3 vertices defined.
     const std::vector<Point> vertices = readVertices();
     const std::pair<Rgb, Rgb> rgbs = readRgbs();
     return Polygon(vertices, rgbs.first, rgbs.second,

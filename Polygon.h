@@ -12,16 +12,16 @@ class SpotLight;
 class Polygon
 {
 public:
+    enum Axis {AxisOx, AxisOy, AxisOz};
+
     Polygon(const std::vector<Point> &vertices, const Rgb &_diffusion, const Rgb &_reflection,
             float ksCoeff, int cosCoeff);
 
     bool pointIsInPolygon(const Point &point) const;
     bool pointIsInPolygon(float x, float y, float z) const;
-    char lineCross(const float &x, const float &y, const float &y0,
-                   const float &x1, const float &y1, const float &x2,
-                   const float &y2, const float &y3) const;
-    void rotate(float alpha, short axis);
-    void replace(float x1, float y1, float z1);
+
+    void rotate(float alpha, Axis axis);
+    void move(float xDelta, float yDelta, float zDelta);
     void scale(float t);
 
     Rgb diffusionWeights() const;
@@ -32,17 +32,24 @@ public:
     int verticesCount() const;
     Point vertice(int index) const;
 
+    /*  Coefficients for containing plain. Vector (A, B, C) is a normal,
+        D is offset. The plain's equation is
+            A * x + B * y + C * z + D = 0.
+    */
     float getA() const;
     float getB() const;
     float getC() const;
     float getD() const;
 
+    // TODO: what is Ks?
     float getKs() const;
     void setKs(float value);
     int cosPower() const;
     void setCosPower(int value);
 
 private:
+    enum CrossType {NoCross, RayCross, PointIsOnSide};
+
     std::vector<Point>  _vertices;
 
     //Степень косинуса для зеркальной составляющей освещённости.
@@ -58,6 +65,14 @@ private:
     float               _B;
     float               _C;
     float               _D;
+
+    void recalcNormal();
+
+    template<typename FuncX, typename FuncY>
+    bool pointIsInProjection(const Point &point,
+                             FuncX projX, FuncY projY) const;
+    static CrossType lineCross(float x, float y, float y0, float x1, float y1,
+                               float x2, float y2, float y3);
 };
 
 
@@ -101,9 +116,9 @@ inline void Polygon::setKs(float value)
     _ks = value;
 }
 
-inline bool Polygon::pointIsInPolygon(const Point &point) const
+inline bool Polygon::pointIsInPolygon(float x, float y, float z) const
 {
-    return pointIsInPolygon(point.x, point.y, point.z);
+    return pointIsInPolygon(Point{x, y, z});
 }
 
 inline Rgb Polygon::diffusionWeights() const

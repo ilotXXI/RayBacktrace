@@ -1,6 +1,8 @@
 #include "Polygon.h"
 
 #include <math.h>
+#include <assert.h>
+#include <algorithm>
 
 #include "Point.h"
 #include "Line.h"
@@ -10,7 +12,33 @@
 #define EPSILON     0.0005
 #define EPSILON2    0.00000005
 
-//Для многоугольника.
+//#define FUNCTIONS_AS_PROJECTORS
+
+#ifdef FUNCTIONS_AS_PROJECTORS
+static inline float getX(const Point &point)
+{
+    return point.x;
+}
+
+static inline float getY(const Point &point)
+{
+    return point.y;
+}
+
+static inline float getZ(const Point &point)
+{
+    return point.z;
+}
+
+#else
+
+static const auto getX = [](const Point &point) -> float { return point.x; };
+static const auto getY = [](const Point &point) -> float { return point.y; };
+static const auto getZ = [](const Point &point) -> float { return point.z; };
+
+#endif
+
+
 Polygon::Polygon(const std::vector<Point> &vertices, const Rgb &ka,
                  const Rgb &kd, float ksCoeff, int cosCoeff)
     : _vertices(vertices)
@@ -19,290 +47,50 @@ Polygon::Polygon(const std::vector<Point> &vertices, const Rgb &ka,
     , _reflection(kd)
     , _ks(ksCoeff)
 {
-    //Вычисление коэффициентов для уравнения несущей плоскости.
-    const float x[] = {_vertices[0].x, _vertices[1].x, _vertices[2].x};
-    const float y[] = {_vertices[0].y, _vertices[1].y, _vertices[2].y};
-    const float z[] = {_vertices[0].z, _vertices[1].z, _vertices[2].z};
+    const size_t minAllowedVerticesCount = 3;
+    if (_vertices.size() < minAllowedVerticesCount) {
+        // Polygon cannot have less than 3 vertices.
+        assert(false);
+        _vertices.resize(minAllowedVerticesCount);
+    }
 
-    _A = (y[1] - y[0]) * (z[2] - z[0]) - (y[2] - y[0]) * (z[1] - z[0]);
-    _B = (z[1] - z[0]) * (x[2] - x[0]) - (x[1] - x[0]) * (z[2] - z[0]);
-    _C = (x[1] - x[0]) * (y[2] - y[0]) - (y[1] - y[0]) * (x[2] - x[0]);
-
-    //Нормирование вектора нормали.
-    _D = sqrt(_A * _A + _B * _B + _C * _C); //D пока используется как промежуточная переменная.
-    _A /= _D;
-    _B /= _D;
-    _C /= _D;
-    _D = -(_A * x[0] + _B * y[0] + _C * z[0]);
+    recalcNormal();
 }
 
- //Метод для определения, лежит ли точка в многоугольнике, если она лежит на его несущей плоскости.
-bool Polygon::pointIsInPolygon(float x, float y, float z) const
+bool Polygon::pointIsInPolygon(const Point &point) const
 {
-    // TODO: refactoring.
-    int i, m;
-    m = 0;
-    //Определение, на какую плоскость можно спроецировать многоугольник и точку.
-    if(fabs(_C) > EPSILON)
-    {//Если несущая плоскость многоугольника не перпендикулярна плоскости XY, то многоугольник и точку можно спроецировать на неё.
-        switch (lineCross(x, y, _vertices.back().y, _vertices.front().x, _vertices.front().y,
-                _vertices[1].x, _vertices[1].y, _vertices[2].y))
-        {
-        case 1:  //Здесь стоит switch с 2 case'ами, потому что функция LineCross может возвращать также и значение 0, и в этом случае не нужно ничего делать.
-          ++m;
-          break;
-        case -1:
-          return true;
-        }
-
-        int n = _vertices.size();
-        n -= 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
-        for(i=1; i<n; ++i)
-        {
-            //Проверка, пересекает ли луч очередную сторону.
-            switch(lineCross(x, y, _vertices[i-1].y, _vertices[i].x, _vertices[i].y, _vertices[i+1].x,
-                    _vertices[i+1].y, _vertices[i+2].y))
-            {
-            case 1:
-                ++m;
-                break;
-            case -1:
-                n += 2;
-                return true;
-            }
-        }
-
-        //Осталось проверить ещё 2 стороны.
-        //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-        switch(lineCross(x, y, _vertices[n-1].y, _vertices[n].x, _vertices[n].y, _vertices[n+1].x,
-                _vertices[n+1].y, _vertices[0].y))
-        {
-        case 1:
-            ++m;
-            break;
-        case -1:
-            n += 2;
-            return true;
-        }
-
-        //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
-        ++n;
-        switch(lineCross(x, y, _vertices[n-1].y, _vertices[n].x, _vertices[n].y, _vertices[0].x,
-                _vertices[0].y, _vertices[1].y))
-        {
-        case 1:
-          ++m;
-          break;
-        case -1:
-          ++n;
-          return true;
-        }
-
-        //Теперь нужно восстановить число углов многоугольника и вернуть результат.
-        ++n;
-        return (m % 2) ? true : false;
+    if(fabs(_C) > EPSILON) {
+        // Polygon is not ortogonal to XY plain.
+        return pointIsInProjection(point, getX, getY);
+    } else  if(fabs(_B) > EPSILON) {
+        // Polygon is not ortogonal to XZ plain.
+        return pointIsInProjection(point, getX, getZ);
+    } else {
+        // Polygon is not ortogonal to YZ plain.
+        return pointIsInProjection(point, getY, getZ);
     }
-
-    //Продолжение определения плоскости проецирования.
-    if(fabs(_B) > EPSILON)
-    {//Если несущая плоскость многоугольника перпендикулярна плоскости XY, но не перпендикулярна плоскости XZ, то многоугольник и точку можно спроецировать на XZ.
-        switch(lineCross(x, z, _vertices.back().z, _vertices[0].x, _vertices[0].z, _vertices[1].x,
-                _vertices[1].z, _vertices[2].z))
-        {
-        case 1:
-          ++m;
-          break;
-        case -1:
-          return true;
-        }
-
-        int n = _vertices.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
-        for(i=1; i<n; ++i)
-        //Проверка, пересекает ли луч очередную сторону.
-        switch(lineCross(x, z, _vertices[i-1].z, _vertices[i].x, _vertices[i].z, _vertices[i+1].x,
-                _vertices[i+1].z, _vertices[i+2].z))
-        {
-        case 1:
-            ++m;
-            break;
-        case -1:
-            n += 2;
-            return true;
-        }
-
-        //Осталось проверить ещё 2 стороны.
-        //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-        switch(lineCross(x, z, _vertices[n-1].z, _vertices[n].x, _vertices[n].z, _vertices[n+1].x, _vertices[n+1].z, _vertices[0].z))
-        {
-        case 1:
-            ++m;
-            break;
-        case -1:
-            n += 2;
-            return true;
-        }
-
-        //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
-        ++n;
-        switch(lineCross(x, z, _vertices[n-1].z, _vertices[n].x, _vertices[n].z, _vertices[0].x, _vertices[0].z, _vertices[1].z))
-        {
-        case 1:
-            ++m;
-            break;
-        case -1:
-            ++n;
-            return true;
-        }
-
-        //Теперь нужно восстановить число углов многоугольника и вернуть результат.
-        ++n;
-        return (m % 2) ? true : false;
-    }
-
-    //Последняя "стадия" определения плоскости проецирования.
-    //Если несущая плоскость многоугольника перпендикулярна и плоскости XY, и плоскости XZ, то многоугольник и точку можно спроецировать на YZ.
-    switch(lineCross(y, z, _vertices.back().z, _vertices[0].y, _vertices[0].z, _vertices[1].y,
-            _vertices[1].z, _vertices[2].z))
-    {
-    case 1:
-        ++m;
-        break;
-    case -1:
-        return true;
-    }
-
-    int n = _vertices.size() - 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
-    for(i=1; i<n; ++i)
-    {
-    //Проверка, пересекает ли луч очередную сторону.
-        switch(lineCross(y, z, _vertices[i-1].z, _vertices[i].y, _vertices[i].z, _vertices[i+1].y, _vertices[i+1].z, _vertices[i+2].z))
-        {
-        case 1:
-            ++m;
-            break;
-        case -1:
-            n += 2;
-            return true;
-        }
-    }
-
-    //Осталось проверить ещё 2 стороны.
-    //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-    switch(lineCross(y, z, _vertices[n-1].z, _vertices[n].y, _vertices[n].z, _vertices[n+1].y, _vertices[n+1].z, _vertices[0].z))
-    {
-    case 1:
-        ++m;
-        break;
-    case -1:
-        n += 2;
-        return true;
-    }
-
-    //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
-    ++n;
-    switch(lineCross(y, z, _vertices[n-1].z, _vertices[n].y, _vertices[n].z, _vertices[0].y, _vertices[0].z, _vertices[1].z))
-    {
-    case 1:
-        ++m;
-        break;
-    case -1:
-        ++n;
-        return true;
-    }
-
-    //Теперь нужно восстановить число углов многоугольника и вернуть результат.
-    ++n;
-    return (m % 2) ? true : false;
 }
 
-//Метод для определения, пересекает ли луч сторону многоугольника.
-char Polygon::lineCross(const float &x, const float &y, const float &y0,
-                        const float &x1, const float &y1, const float &x2,
-                        const float &y2, const float &y3) const
-{
-    double t, q;
-    if (!(x>x1  &&  x>x2))
-    {
-        if (fabs(y1 - y2) < EPSILON2) //Если сторона горизонтальна.
-        {
-            if (fabs(y1 - y) < EPSILON2)
-            {
-                if (x1 < x2)
-                {
-                    t = x1;
-                    q = x2;
-                }
-                else
-                {
-                    t = x2;
-                    q = x1;
-                }
-                if (t<=x && x<=q)
-                    return -1;
-                if ((y1 - y0) * (y2 - y3) > 0)
-                    return 1;
-            }
-        }
-        else
-        {
-            q = (y - y1) / (y2 - y1);
-            if (q>EPSILON2  &&  q<=1)   //Если прямая, содержащая луч, пересекает сторону.
-            {
-                t = x1 - x + (x2 - x1)*q;
-                if (t > EPSILON2) //Если луч перескает сторону.
-                {
-                    if (fabs(q-1)<EPSILON2) //Если луч пересекает вершину.
-                    {
-                        if ((y2 - y1) * (y2 - y3)  <= 0)
-                            return 1;
-                        else
-                            return 0;
-                    }
-                    return 1;
-                }
-                else if(fabs(t) < EPSILON2)  //Если точка лежит на стороне, то она принадлежит многоугольнику.
-                {
-                    return -1;
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-
-//Метод для перемещения многоугольника.
-void Polygon::replace(float x1, float y1, float z1)
+void Polygon::move(float xDelta, float yDelta, float zDelta)
 {
     for (auto &vert: _vertices)
     {
-        vert.x += x1;
-        vert.y += y1;
-        vert.z += z1;
+        vert.x += xDelta;
+        vert.y += yDelta;
+        vert.z += zDelta;
     }
 
-    //Перевычисление коэффициентов для уравнения несущей плоскости.
-    _A = (_vertices[1].y - _vertices[0].y)*(_vertices[2].z - _vertices[0].z) - (_vertices[2].y - _vertices[0].y)*(_vertices[1].z - _vertices[0].z);
-    _B = (_vertices[1].z - _vertices[0].z)*(_vertices[2].x - _vertices[0].x) - (_vertices[1].x - _vertices[0].x)*(_vertices[2].z - _vertices[0].z);
-    _C = (_vertices[1].x - _vertices[0].x)*(_vertices[2].y - _vertices[0].y) - (_vertices[1].y - _vertices[0].y)*(_vertices[2].x - _vertices[0].x);
-
-    //Нормирование вектора нормали.
-    _D = sqrt(_A*_A + _B*_B + _C*_C); //D пока используется как промежуточная переменная.
-    _A /= _D;
-    _B /= _D;
-    _C /= _D;
-    _D = -(_A*_vertices[0].x + _B*_vertices[0].y + _C*_vertices[0].z);
+    recalcNormal();
 }
 
-//Метод для поворота многоугольника.
-void Polygon::rotate(float alpha, short axis)
+void Polygon::rotate(float alpha, Axis axis)
 {
     float old, sinAlpha, cosAlpha;
     sinAlpha = sin(alpha);
     cosAlpha = cos(alpha);
     switch (axis)
     {
-    case 0: //Поворот вокруг оси Ox.
+    case AxisOx:
         for (auto &vert:    _vertices)
         {
             old = vert.y;
@@ -310,7 +98,7 @@ void Polygon::rotate(float alpha, short axis)
             vert.z = sinAlpha * old  +  cosAlpha * vert.z;
         }
         break;
-    case 1: //Поворот вокруг оси Oy.
+    case AxisOy:
         for (auto &vert:    _vertices)
         {
           old = vert.x;
@@ -318,29 +106,22 @@ void Polygon::rotate(float alpha, short axis)
           vert.z = -sinAlpha * old  +  cosAlpha * vert.z;
         }
         break;
-    default: //Поворот вокруг оси Oz.
+    case AxisOz:
         for (auto &vert:    _vertices)
         {
             old = vert.x;
             vert.x = cosAlpha * old  -  sinAlpha * vert.y;
             vert.y = sinAlpha * old  +  cosAlpha * vert.y;
         }
+        break;
+    default:
+        assert(false);
+        return;
     }
 
-    //Перевычисление коэффициентов для уравнения несущей плоскости.
-    _A = (_vertices[1].y - _vertices[0].y)*(_vertices[2].z - _vertices[0].z) - (_vertices[2].y - _vertices[0].y)*(_vertices[1].z - _vertices[0].z);
-    _B = (_vertices[1].z - _vertices[0].z)*(_vertices[2].x - _vertices[0].x) - (_vertices[1].x - _vertices[0].x)*(_vertices[2].z - _vertices[0].z);
-    _C = (_vertices[1].x - _vertices[0].x)*(_vertices[2].y - _vertices[0].y) - (_vertices[1].y - _vertices[0].y)*(_vertices[2].x - _vertices[0].x);
-
-    //Нормирование вектора нормали.
-    _D = sqrt(_A*_A + _B*_B + _C*_C); //D пока используется как промежуточная переменная.
-    _A /= _D;
-    _B /= _D;
-    _C /= _D;
-    _D = -(_A*_vertices[0].x + _B*_vertices[0].y + _C*_vertices[0].z);
+    recalcNormal();
 }
 
-//Метод для масштабирования многоугольника.
 void Polygon::scale(float t)
 {
     for (auto &vert:    _vertices)
@@ -350,15 +131,146 @@ void Polygon::scale(float t)
         vert.z *= t;
     }
 
-    //Перевычисление коэффициентов для уравнения несущей плоскости.
-    _A = (_vertices[1].y - _vertices[0].y)*(_vertices[2].z - _vertices[0].z) - (_vertices[2].y - _vertices[0].y)*(_vertices[1].z - _vertices[0].z);
-    _B = (_vertices[1].z - _vertices[0].z)*(_vertices[2].x - _vertices[0].x) - (_vertices[1].x - _vertices[0].x)*(_vertices[2].z - _vertices[0].z);
-    _C = (_vertices[1].x - _vertices[0].x)*(_vertices[2].y - _vertices[0].y) - (_vertices[1].y - _vertices[0].y)*(_vertices[2].x - _vertices[0].x);
+    recalcNormal();
+}
 
-    //Нормирование вектора нормали.
-    _D = sqrt(_A*_A + _B*_B + _C*_C); //D пока используется как промежуточная переменная.
-    _A /= _D;
-    _B /= _D;
-    _C /= _D;
-    _D = -(_A*_vertices[0].x + _B*_vertices[0].y + _C*_vertices[0].z);
+void Polygon::recalcNormal()
+{
+    _A = (_vertices[1].y - _vertices[0].y) * (_vertices[2].z - _vertices[0].z) -
+        (_vertices[2].y - _vertices[0].y) * (_vertices[1].z - _vertices[0].z);
+    _B = (_vertices[1].z - _vertices[0].z) * (_vertices[2].x - _vertices[0].x) -
+        (_vertices[1].x - _vertices[0].x) * (_vertices[2].z - _vertices[0].z);
+    _C = (_vertices[1].x - _vertices[0].x) * (_vertices[2].y - _vertices[0].y) -
+        (_vertices[1].y - _vertices[0].y) * (_vertices[2].x - _vertices[0].x);
+
+    const float normalAbs = sqrt(_A * _A + _B * _B + _C * _C);
+    _A /= normalAbs;
+    _B /= normalAbs;
+    _C /= normalAbs;
+    _D = - (_A * _vertices[0].x + _B * _vertices[0].y + _C * _vertices[0].z);
+}
+
+/*  FuncX and FuncY are functions for points projection to the plain. They
+    must have a signature:
+        float func(const Point &);
+*/
+template<typename FuncX, typename FuncY>
+bool Polygon::pointIsInProjection(const Point &point,
+                                  FuncX projX, FuncY projY) const
+{
+    // TODO: circular indices or look at triangle as to an especial case.
+    const float x = projX(point);
+    const float y = projY(point);
+
+    int m = 0;
+
+    switch (lineCross(x, y, projY(_vertices.back()), projX(_vertices.front()),
+            projY(_vertices.front()), projX(_vertices[1]),
+            projY(_vertices[1]), projY(_vertices[2])))
+    {
+    case RayCross:
+        ++m;
+        break;
+    case PointIsOnSide:
+        return true;
+    }
+
+    int n = _vertices.size();
+    n -= 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
+    for(int i = 1; i < n; ++i)
+    {
+        //Проверка, пересекает ли луч очередную сторону.
+        switch (lineCross(x, y, projY(_vertices[i-1]), projX(_vertices[i]),
+                projY(_vertices[i]), projX(_vertices[i+1]),
+                projY(_vertices[i+1]), projY(_vertices[i+2])))
+        {
+        case RayCross:
+            ++m;
+            break;
+        case PointIsOnSide:
+            return true;
+        }
+    }
+
+    //Осталось проверить ещё 2 стороны.
+    //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
+    switch (lineCross(x, y, projY(_vertices[n-1]), projX(_vertices[n]),
+            projY(_vertices[n]), projX(_vertices[n+1]),
+            projY(_vertices[n+1]), projY(_vertices[0])))
+    {
+    case RayCross:
+        ++m;
+        break;
+    case PointIsOnSide:
+        return true;
+    }
+
+    //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
+    ++n;
+    switch (lineCross(x, y, projY(_vertices[n-1]), projX(_vertices[n]),
+            projY(_vertices[n]), projX(_vertices[0]),
+            projY(_vertices[0]), projY(_vertices[1])))
+    {
+    case RayCross:
+        ++m;
+        break;
+    case PointIsOnSide:
+        return true;
+    }
+
+    return (m % 2) ? true : false;
+}
+
+/*  Determines in a what way does a horizontal ray from (x, y) point intersects
+    a side projection on a 2D plain. The side is a 2D line between (x1, y1) and
+    (x2, y2) points. y0 and y3 are y-coordinates of previous and next vertices
+    correspondingly. The 2D plain may be any projection of 3D space,
+    terminology of "x" and "y" is applied just to the plain.
+*/
+Polygon::CrossType Polygon::lineCross(float x, float y, float y0,
+                                      float x1, float y1,
+                                      float x2, float y2, float y3)
+{
+    if (x > x1 && x > x2) {
+        // The ray is righter than the side.
+        return NoCross;
+    }
+
+    if (fabs(y1 - y2) < EPSILON2) {
+        // Especial case: the side is horizontal.
+
+        if (fabs(y1 - y) < EPSILON2) {
+            const float leftX = std::min(x1, x2);
+            const float rightX = std::max(x1, x2);
+
+            if (leftX <= x && x <= rightX)
+                return PointIsOnSide;
+            if ((y1 - y0) * (y2 - y3) > 0)
+                return RayCross;
+        }
+    } else {
+        const float q = (y - y1) / (y2 - y1);
+        if (q > EPSILON2 && q <= 1) {
+            // Ray's line intersects the side.
+            const float t = x1 - x + (x2 - x1) * q;
+            if (t > EPSILON2) {
+                // The ray intersects the line.
+                if (fabs(q - 1) < EPSILON2) {
+                    // The ray intersects a vertex.
+                    if ((y2 - y1) * (y2 - y3) <= 0) {
+                        return RayCross;
+                    } else {
+                        return NoCross;
+                    }
+                }
+
+                return RayCross;
+            } else if(t > - EPSILON2) {
+                // The point is on the side.
+                return PointIsOnSide;
+            }
+        }
+    }
+
+    return NoCross;
 }

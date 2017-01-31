@@ -12,12 +12,24 @@ struct Line
     float a, b, c;
 
     float directingVectorAbs() const;
+    void renormDirectingVector(float toAbs = 1.f);
 };
 
 
 inline float Line::directingVectorAbs() const
 {
     return sqrt(a * a + b * b + c * c);
+}
+
+inline void Line::renormDirectingVector(float toAbs)
+{
+    const float oldAbs = directingVectorAbs();
+    if (oldAbs < 1E-5)
+        return;
+    const float factor = toAbs / oldAbs;
+    a *= factor;
+    b *= factor;
+    c *= factor;
 }
 
 #endif // LINE_H

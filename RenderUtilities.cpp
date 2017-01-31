@@ -221,7 +221,7 @@ inline bool LineCrossesPolygonPlane(const Line &line, const Polygon &polygon,
         polygon.getB() * line.b +
         polygon.getC() * line.c;
 
-    if (abs(normalToRay) < 1E-8)
+    if (abs(normalToRay) < 1E-4)
         return false;
 
     crossParameter = - (polygon.getA() * line.x0 +
@@ -230,8 +230,8 @@ inline bool LineCrossesPolygonPlane(const Line &line, const Polygon &polygon,
     return true;
 }
 
-Line ReflectedRay(const Polygon &from, const Line &instRay,
-                  const Point &reflectionPoint)
+inline Line ReflectedRay(const Polygon &from, const Line &instRay,
+                         const Point &reflectionPoint)
 {
     Line res;
 
@@ -263,8 +263,10 @@ void CalcIntensivity(const float &x, const float &y, const float &z,
                      float &R, float &G, float &B,
                      int polInd, const Line &ray)
 {
+    const Polygon &pol = polygons[polInd];
+
     //Вычисление рассеянной составляющей.
-    const Rgb diffusedRgb = polygons[polInd].diffusionWeights();
+    const Rgb diffusedRgb = pol.diffusionWeights();
     R = DIFFUSED_LIGHT_INTENSIVITY * diffusedRgb.red();
     G = DIFFUSED_LIGHT_INTENSIVITY * diffusedRgb.green();
     B = DIFFUSED_LIGHT_INTENSIVITY * diffusedRgb.blue();
@@ -293,20 +295,19 @@ void CalcIntensivity(const float &x, const float &y, const float &z,
         if (lightIsScreened)
             continue;
 
-        //Поиск косинуса угла между нормалью к многоугольнику и лучём.
+        //Вычисление косинуса угла между нормалью к многоугольнику и лучём.
         const float rayToLAbs = rayToLight.directingVectorAbs();
-        float cosT = polygons[polInd].getA() * rayToLight.a  +
-            polygons[polInd].getB() * rayToLight.b  +
-            polygons[polInd].getC() * rayToLight.c;
-        cosT /= sqrt(polygons[polInd].getA()*polygons[polInd].getA() +
-            polygons[polInd].getB()*polygons[polInd].getB() +
-            polygons[polInd].getC()*polygons[polInd].getC())  *  rayToLAbs;
+        float cosT = pol.getA() * rayToLight.a + pol.getB() * rayToLight.b +
+            pol.getC() * rayToLight.c;
+        //Нормаль к поверхности всегда нормированна к 1.
+        cosT /= 1.f * rayToLAbs;
 
         //Вычисление освещённости диффузионно отражённого света от i-го источника.
-        const float d = rayToLight.directingVectorAbs();
-        const float t = cosT * lights[i].Intensivity() / (d + K_KOEFFICIENT);
+        const float distToLight = rayToLAbs;
+        const float t = cosT * lights[i].Intensivity() /
+            (distToLight + K_KOEFFICIENT);
 
-        const Rgb reflectedRgb = polygons[polInd].reflectionWeights();
+        const Rgb reflectedRgb = pol.reflectionWeights();
         R += reflectedRgb.red() * t;
         G += reflectedRgb.green() * t;
         B += reflectedRgb.blue() * t;
@@ -315,18 +316,20 @@ void CalcIntensivity(const float &x, const float &y, const float &z,
         rayToLight.a /= rayToLAbs;
         rayToLight.b /= rayToLAbs;
         rayToLight.c /= rayToLAbs;
-        //Формирование направляющего вектора луча, зеркально отражённого от rayToLight.
+
         cosT += cosT;
-        rayToLight.a = cosT * polygons[polInd].getA()  -  rayToLight.a;
-        rayToLight.b = cosT * polygons[polInd].getB()  -  rayToLight.b;
-        rayToLight.c = cosT * polygons[polInd].getC()  -  rayToLight.c;
-        //Вычисление косинуса угла между отражённым лучом и исходным лучом l.
-        float cosA = ray.a * rayToLight.a  +  ray.b * rayToLight.b  +
-            ray.c * rayToLight.c;
+        Line reflectedRay = rayToLight;
+        reflectedRay.a = cosT * pol.getA() - rayToLight.a;
+        reflectedRay.b = cosT * pol.getB() - rayToLight.b;
+        reflectedRay.c = cosT * pol.getC() - rayToLight.c;
+
+        //Вычисление косинуса угла между отражённым лучом и исходным лучом.
+        float cosA = ray.a * reflectedRay.a  +  ray.b * reflectedRay.b  +
+            ray.c * reflectedRay.c;
         //Вычисление освещённости зеркально отражённого света.
-        cosA = Raise(fabs(cosA), polygons[polInd].cosPower()) *
-            polygons[polInd].getKs() *
-            lights[i].Intensivity() / (d + K_KOEFFICIENT);
+        cosA = Raise(fabs(cosA), pol.cosPower()) *
+            pol.getKs() *
+            lights[i].Intensivity() / (distToLight + K_KOEFFICIENT);
         R += cosA;
         G += cosA;
         B += cosA;
