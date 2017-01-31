@@ -8,6 +8,7 @@
 #include "Line.h"
 #include "SpotLight.h"
 #include "Rgb.h"
+#include "CircularIndex.h"
 
 #define EPSILON     0.0005
 #define EPSILON2    0.00000005
@@ -158,67 +159,51 @@ template<typename FuncX, typename FuncY>
 bool Polygon::pointIsInProjection(const Point &point,
                                   FuncX projX, FuncY projY) const
 {
-    // TODO: circular indices or look at triangle as to an especial case.
     const float x = projX(point);
     const float y = projY(point);
 
-    int m = 0;
+    int crossesCount = 0;
 
-    switch (lineCross(x, y, projY(_vertices.back()), projX(_vertices.front()),
-            projY(_vertices.front()), projX(_vertices[1]),
-            projY(_vertices[1]), projY(_vertices[2])))
-    {
-    case RayCross:
-        ++m;
-        break;
-    case PointIsOnSide:
-        return true;
-    }
+    // Circular indices help to walk through the polygon sides vertex-by-vertex.
+    const int minInd = 0;
+    const int maxInd = int(_vertices.size() - 1);
+    CircularIndex prepre(minInd, maxInd);
+    CircularIndex pre(minInd, maxInd);
+    CircularIndex nex(minInd, maxInd);
+    CircularIndex nexnex(minInd, maxInd);
+    prepre.setCirculary(- 1);
+    pre.setCirculary(0);
+    nex.setCirculary(1);
+    nexnex.setCirculary(2);
 
-    int n = _vertices.size();
-    n -= 2;  //Две последние стороны приходится проверять отдельно из-за индексов.
-    for(int i = 1; i < n; ++i)
-    {
-        //Проверка, пересекает ли луч очередную сторону.
-        switch (lineCross(x, y, projY(_vertices[i-1]), projX(_vertices[i]),
-                projY(_vertices[i]), projX(_vertices[i+1]),
-                projY(_vertices[i+1]), projY(_vertices[i+2])))
-        {
+    const auto extractX = [this, &projX] (const CircularIndex &ind) {
+        return projX(_vertices[ind.toInt()]);
+    };
+    const auto extractY = [this, &projY] (const CircularIndex &ind) {
+        return projY(_vertices[ind.toInt()]);
+    };
+
+    const int sidesCount = int(_vertices.size());
+    for (int i = 0; i < sidesCount; ++i) {
+        const CrossType crossType = lineCross(x, y,
+            extractY(prepre), extractX(pre), extractY(pre), extractX(nex),
+            extractY(nex), extractY(nexnex));
+
+        switch (crossType) {
         case RayCross:
-            ++m;
+            ++crossesCount;
             break;
         case PointIsOnSide:
             return true;
         }
+
+        ++prepre;
+        ++pre;
+        ++nex;
+        ++nexnex;
     }
 
-    //Осталось проверить ещё 2 стороны.
-    //Сторона (n-2; n-1) [в силу переобозначения - (n; n+1)].
-    switch (lineCross(x, y, projY(_vertices[n-1]), projX(_vertices[n]),
-            projY(_vertices[n]), projX(_vertices[n+1]),
-            projY(_vertices[n+1]), projY(_vertices[0])))
-    {
-    case RayCross:
-        ++m;
-        break;
-    case PointIsOnSide:
-        return true;
-    }
-
-    //Сторона (n-1; 0) [в силу переобозначения(после следующего ++n) - (n; 0)].
-    ++n;
-    switch (lineCross(x, y, projY(_vertices[n-1]), projX(_vertices[n]),
-            projY(_vertices[n]), projX(_vertices[0]),
-            projY(_vertices[0]), projY(_vertices[1])))
-    {
-    case RayCross:
-        ++m;
-        break;
-    case PointIsOnSide:
-        return true;
-    }
-
-    return (m % 2) ? true : false;
+    return (crossesCount % 2) ? true : false;
 }
 
 /*  Determines in a what way does a horizontal ray from (x, y) point intersects

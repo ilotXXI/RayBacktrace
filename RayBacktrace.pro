@@ -49,7 +49,8 @@ HEADERS  += MainWindow.h \
     Canvas.h \
     Renderer.h \
     SimpleRenderer.h \
-    ParallelRenderer.h
+    ParallelRenderer.h \
+    CircularIndex.h
 
 FORMS    += MainWindow.ui \
     AddPolygonDialog.ui \
