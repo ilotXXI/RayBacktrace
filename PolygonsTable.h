@@ -29,7 +29,7 @@ public:
     std::vector<Polygon> polygons() const;
 
 private:
-    enum Column {Ka, Kd, Ks, Cpk, ColumnsCount};
+    enum Column {DiffusWeigh, ReflWeigh, ReflCoeff, CosPower, ColumnsCount};
 
     std::vector<Polygon>    _polygons;
 };

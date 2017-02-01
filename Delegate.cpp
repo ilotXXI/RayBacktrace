@@ -1,10 +1,22 @@
 #include "Delegate.h"
 
 #include <QColorDialog>
+#include <QDoubleSpinBox>
 
 Delegate::Delegate(QObject *parent)
     : QStyledItemDelegate(parent)
 {
+}
+
+void Delegate::setDoubleRange(double min, double max)
+{
+    _doubleMin = min;
+    _doubleMax = max;
+}
+
+void Delegate::setDoubleStep(double step)
+{
+    _doubleStep = step;
 }
 
 QWidget * Delegate::createEditor(QWidget *parent,
@@ -16,6 +28,14 @@ QWidget * Delegate::createEditor(QWidget *parent,
         return new QColorDialog(qvariant_cast<QColor>(data), parent);
     } else if (data.canConvert<QBrush>()) {
         return new QColorDialog(qvariant_cast<QBrush>(data).color(), parent);
+    } else if (data.type() == QMetaType::Float) {
+        // Qt logical error workaround.
+        QDoubleSpinBox *spin = new QDoubleSpinBox(parent);
+        spin->setMinimum(_doubleMin);
+        spin->setMaximum(_doubleMax);
+        spin->setValue(data.toFloat());
+        spin->setSingleStep(_doubleStep);
+        return spin;
     }
 
     return QStyledItemDelegate::createEditor(parent, option, index);

@@ -30,25 +30,25 @@ QVariant PolygonsTable::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch (index.column()) {
-        case Ks:
-            return QVariant(_polygons[row].getKs());
+        case ReflCoeff:
+            return _polygons[row].reflectionCoefficient();
             break;
-        case Cpk:
-            return QVariant(_polygons[row].cosPower());
+        case CosPower:
+            return _polygons[row].cosPower();
             break;
         }
     }
 
     if (role ==  Qt::BackgroundRole || role == Qt::EditRole) {
         switch (index.column()) {
-        case Ka:
+        case DiffusWeigh:
             {
                 const Rgb rgb = _polygons[row].diffusionWeights();
                 return QBrush(QColor::fromRgbF(rgb.red(),
                     rgb.green(), rgb.blue()));
             }
             break;
-        case Kd:
+        case ReflWeigh:
             {
                 const Rgb rgb = _polygons[row].reflectionWeights();
                 return QBrush(QColor::fromRgbF(rgb.red(),
@@ -76,7 +76,7 @@ bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
 
     Polygon &pol = _polygons[row];
     switch (col) {
-    case Ka:
+    case DiffusWeigh:
         if (value.canConvert<QColor>())
         {
             const QColor rgb = qvariant_cast<QColor>(value);
@@ -86,7 +86,7 @@ bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
         }
         return false;
         break;
-    case Kd:
+    case ReflWeigh:
         if (value.canConvert<QColor>())
         {
             const QColor rgb = qvariant_cast<QColor>(value);
@@ -96,13 +96,13 @@ bool PolygonsTable::setData(const QModelIndex &index, const QVariant &value,
         }
         return false;
         break;
-    case Ks:
+    case ReflCoeff:
         if (!value.canConvert<float>())
             return false;
-        pol.setKs(value.toFloat());
+        pol.setReflectionCoefficient(value.toFloat());
         return true;
         break;
-    case Cpk:
+    case CosPower:
         if (!value.canConvert<int>())
             return false;
         pol.setCosPower(value.toInt());

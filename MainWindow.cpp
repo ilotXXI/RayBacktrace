@@ -185,7 +185,7 @@ void MainWindow::saveScene() const
         //Запись коэффициентов и кол-ва вершин очередного многоугольника.
         stream << polygon.diffusionWeights();
         stream << polygon.reflectionWeights();
-        stream << polygon.getKs() << polygon.cosPower() << verticesCount;
+        stream << polygon.reflectionCoefficient() << polygon.cosPower() << verticesCount;
 
         //Запись координат вершин многоугольника.
         for (int vertInd = 0; vertInd < verticesCount; ++vertInd)

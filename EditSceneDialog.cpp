@@ -17,6 +17,10 @@ EditSceneDialog::EditSceneDialog(const Scene &initialScene, QWidget *parent)
 
     _lightsTable = new LightsTable(initialScene.lights(), this);
     _ui->lightsView->setModel(_lightsTable);
+    Delegate *lightsDelegate = new Delegate(_ui->lightsView);
+    lightsDelegate->setDoubleRange(- 1E6, 1E6);
+    lightsDelegate->setDoubleStep(10.);
+    _ui->lightsView->setItemDelegate(lightsDelegate);
 
     connect(_ui->buttonBox, &QDialogButtonBox::accepted,
         this, &QDialog::accept);

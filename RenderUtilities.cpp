@@ -110,7 +110,7 @@ void Trace(Line &ray, const Polygon *polygons, int polCount,
         Trace(reflRay, polygons, polCount, lights, lightsCount,
             reflectR, reflectG, reflectB, lookCount + 1);
 
-        const float ks = polygons[crossedPolInd].getKs();
+        const float ks = polygons[crossedPolInd].reflectionCoefficient();
         reflectR *= ks;
         reflectG *= ks;
         reflectB *= ks;
@@ -327,8 +327,7 @@ void CalcIntensivity(const float &x, const float &y, const float &z,
         float cosA = ray.a * reflectedRay.a  +  ray.b * reflectedRay.b  +
             ray.c * reflectedRay.c;
         //Вычисление освещённости зеркально отражённого света.
-        cosA = Raise(fabs(cosA), pol.cosPower()) *
-            pol.getKs() *
+        cosA = Raise(fabs(cosA), pol.cosPower()) * pol.reflectionCoefficient() *
             lights[i].Intensivity() / (distToLight + K_KOEFFICIENT);
         R += cosA;
         G += cosA;

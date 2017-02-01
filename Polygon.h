@@ -41,9 +41,8 @@ public:
     float getC() const;
     float getD() const;
 
-    // TODO: what is Ks?
-    float getKs() const;
-    void setKs(float value);
+    float reflectionCoefficient() const;
+    void setReflectionCoefficient(float value);
     int cosPower() const;
     void setCosPower(int value);
 
@@ -96,7 +95,7 @@ inline float Polygon::getD() const
     return _D;
 }
 
-inline float Polygon::getKs() const
+inline float Polygon::reflectionCoefficient() const
 {
     return _ks;
 }
@@ -111,7 +110,7 @@ inline void Polygon::setCosPower(int value)
     _cosPow = value;
 }
 
-inline void Polygon::setKs(float value)
+inline void Polygon::setReflectionCoefficient(float value)
 {
     _ks = value;
 }
