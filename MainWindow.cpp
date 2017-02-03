@@ -12,6 +12,10 @@
 #include <QProgressBar>
 #include <QCloseEvent>
 
+#ifdef _DEBUG
+#include <QDebug>
+#endif
+
 #include <memory>
 
 #include "AddPolygonDialog.h"
@@ -25,6 +29,7 @@
 
 static const char *PATH_SETTING_NAME = "filePath";
 static const char *GEOMETRY_SETTING_NAME = "geometry";
+static const char *REND_SETTING_NAME = "renderer";
 
 static inline std::unique_ptr<QSettings> settingsInst()
 {
@@ -48,15 +53,16 @@ MainWindow::MainWindow(QWidget *parent)
 {
     _ui->setupUi(this);
 
-    const std::unique_ptr<QSettings> settings = settingsInst();
-    if (settings.get() != nullptr)
-        restoreGeometry(settings->value(GEOMETRY_SETTING_NAME).toByteArray());
-
     _progressBar->setMinimum(0);
     _progressBar->setMaximum(100);
     _progressBar->setValue(0);
     statusBar()->addPermanentWidget(_progressBar.data());
     _progressBar->setVisible(false);
+
+    QActionGroup *rendChangeGroup = new QActionGroup(this);
+    rendChangeGroup->setExclusive(true);
+    rendChangeGroup->addAction(_ui->simpleRendAction);
+    rendChangeGroup->addAction(_ui->parallelRendAction);
 
     connect(_ui->saveAction, &QAction::triggered, this, &MainWindow::saveScene);
     connect(_ui->loadAction, &QAction::triggered, this, &MainWindow::loadScene);
@@ -70,17 +76,25 @@ MainWindow::MainWindow(QWidget *parent)
         this, &MainWindow::addLight);
     connect(_ui->editSceneAction, &QAction::triggered,
         this, &MainWindow::editScene);
+    connect(_ui->simpleRendAction, &QAction::triggered,
+        [this] (bool checked) {
+            if (checked)
+                setRenderer(RendSimple);
+        });
+    connect(_ui->parallelRendAction, &QAction::triggered,
+        [this] (bool checked) {
+            if (checked)
+                setRenderer(RendParallel);
+        });
 
-//    setRenderer(QScopedPointer<Renderer>(new SimpleRenderer));
-    setRenderer(QScopedPointer<Renderer>(new ParallelRenderer));
+    readSettings();
+
     _workThread->start();
 }
 
 MainWindow::~MainWindow()
 {
-    const std::unique_ptr<QSettings> settings = settingsInst();
-    if (settings.get() != nullptr)
-        settings->setValue(GEOMETRY_SETTING_NAME, saveGeometry());
+    writeSettings();
 
     if (_workThread->isRunning()) {
         _workThread->quit();
@@ -103,6 +117,38 @@ void MainWindow::closeEvent(QCloseEvent *event)
     } else {
         QMainWindow::closeEvent(event);
     }
+}
+
+void MainWindow::readSettings()
+{
+    const std::unique_ptr<QSettings> settings = settingsInst();
+    restoreGeometry(settings->value(GEOMETRY_SETTING_NAME).toByteArray());
+
+    int rendType =
+        settings->value(REND_SETTING_NAME, RendSimple).toInt();
+    if (rendType < 0 || RendTypesCount <= rendType) {
+        QMessageBox::warning(this, tr("Чтение настроек"),
+            tr("При чтении настроек обнаружен неизвестный \n"
+               "тип отрисовщика. Установлен отрисовщик по \n"
+               "умолчанию."));
+        rendType = RendSimple;
+    }
+    setRenderer(static_cast<RendererType>(rendType));
+}
+
+void MainWindow::writeSettings()
+{
+    const std::unique_ptr<QSettings> settings = settingsInst();
+
+    settings->setValue(GEOMETRY_SETTING_NAME, saveGeometry());
+
+    RendererType rendType = RendSimple;
+    if (qobject_cast<SimpleRenderer *>(_renderer.data()) != nullptr) {
+        rendType = RendSimple;
+    } else if (qobject_cast<ParallelRenderer *>(_renderer.data()) != nullptr) {
+        rendType = RendParallel;
+    }
+    settings->setValue(REND_SETTING_NAME, rendType);
 }
 
 void MainWindow::setCanvas(const Canvas &canvas)
@@ -130,9 +176,24 @@ void MainWindow::setCanvas(const Canvas &canvas)
     _ui->pixmapWidget->setPixmap(QPixmap::fromImage(image));
 }
 
-void MainWindow::setRenderer(QScopedPointer<Renderer> &&renderer)
+void MainWindow::setRenderer(RendererType type)
 {
-    _renderer.reset(renderer.take());
+    switch (type) {
+    case RendSimple:
+        _renderer.reset(new SimpleRenderer);
+        _ui->simpleRendAction->setChecked(true);
+        break;
+    case RendParallel:
+        _renderer.reset(new ParallelRenderer);
+        _ui->parallelRendAction->setChecked(true);
+        break;
+    default:
+        Q_ASSERT(false);
+        _renderer.reset(new SimpleRenderer);
+        _ui->simpleRendAction->setChecked(true);
+        break;
+    }
+
     _renderer->moveToThread(_workThread.data());
     connect(_renderer.data(), &Renderer::renderStarted,
         this, &MainWindow::handleRenderStart);
@@ -322,14 +383,14 @@ void MainWindow::handleRenderStart()
 
     _progressBar->setVisible(false);
     _progressBar->setValue(0);
-    statusBar()->showMessage(tr("Рендеринг начат"));
+    statusBar()->showMessage(tr("Отрисовка начата"));
 }
 
 void MainWindow::handleRenderFinish()
 {
     const float drawingTime = float(_timer.elapsed()) * 0.001f;
     statusBar()->showMessage(
-        tr("Рендеринг завершён. Время: %1 секунд").
+        tr("Отрисовка завершена. Время: %1 секунд").
         arg(drawingTime));
     _progressBar->setVisible(false);
 

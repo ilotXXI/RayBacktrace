@@ -5,6 +5,8 @@
 
 class SimpleRenderer: public    Renderer
 {
+    Q_OBJECT
+
 public:
     SimpleRenderer(QObject *parent = nullptr);
 

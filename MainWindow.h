@@ -29,6 +29,8 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
+    enum RendererType {RendSimple, RendParallel, RendTypesCount};
+
     QScopedPointer<Ui::MainWindow>  _ui;
     QScopedPointer<QProgressBar>    _progressBar = nullptr;
 
@@ -39,8 +41,11 @@ private:
     Scene                           _scene;
     QScopedPointer<Renderer>        _renderer;
 
+    void readSettings();
+    void writeSettings();
+
     void setCanvas(const Canvas &canvas);
-    void setRenderer(QScopedPointer<Renderer> &&renderer);
+    void setRenderer(RendererType type);
 
 private slots:
     void newFile();

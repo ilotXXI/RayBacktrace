@@ -6,6 +6,7 @@
 class ParallelRenderer : public Renderer
 {
     Q_OBJECT
+
 public:
     ParallelRenderer(QObject *parent = nullptr);
 
