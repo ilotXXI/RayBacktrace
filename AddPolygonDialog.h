@@ -8,7 +8,7 @@
 namespace Ui {
 class AddPolygonDialog;
 }
-class QStandardItemModel;
+class QColor;
 
 class AddPolygonDialog : public QDialog
 {
@@ -20,19 +20,27 @@ public:
 
     Polygon polygon() const;
 
+public slots:
+    void accept() override;
+
 private:
     Ui::AddPolygonDialog    *_ui;
-
-    QStandardItemModel      *_coeffModel;
-
-    static QStandardItemModel * createCoeffModel(QObject *parent);
+    void setupDefaultData();
 
     std::vector<Point> readVertices() const;
     std::pair<Rgb, Rgb> readRgbs() const;
 
+    bool canRemove() const;
+
+    static void setColor(QPushButton *toButton, const QColor &color);
+    static QColor color(QPushButton *ofButton);
+    void askAndSetColor(QPushButton *forButton);
+
 private slots:
     void addVertice();
     void removeVertice();
+
+    void updateRemoveEnabled();
 };
 
 #endif // ADDPOLYGONDIALOG_H

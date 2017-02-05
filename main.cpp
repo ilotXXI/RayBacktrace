@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 #include <QApplication>
 
-//#include "AddLightDialog.h"
+//#include "AddPolygonDialog.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     MainWindow window;
-//    AddLightDialog window;
+//    AddPolygonDialog window;
     window.show();
 
     return app.exec();

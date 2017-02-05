@@ -127,6 +127,9 @@
    <property name="toolTip">
     <string>Добавить многоугольник...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
   </action>
   <action name="addLightAction">
    <property name="text">
@@ -135,6 +138,9 @@
    <property name="toolTip">
     <string>Добавить источник света...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
   </action>
   <action name="editSceneAction">
    <property name="text">
@@ -142,6 +148,9 @@
    </property>
    <property name="toolTip">
     <string>Преобразовать сцену...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="simpleRendAction">

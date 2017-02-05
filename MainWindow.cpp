@@ -297,9 +297,9 @@ void MainWindow::loadScene()
     stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
     float r[2], g[2], b[2];
-    float ks = 0.f;
-    int c_p_k = 0;
-    int top_n = 0;
+    float reflCoeff = 0.f;
+    int cosPow = 0;
+    int vertCount = 0;
 
     _scene.clear();
 
@@ -316,12 +316,12 @@ void MainWindow::loadScene()
         //Считывание коэффициентов и кол-ва вершин очередного многоугольника.
         stream >> r[0] >> g[0] >> b[0];
         stream >> r[1] >> g[1] >> b[1];
-        stream >> ks >> c_p_k >> top_n;
+        stream >> reflCoeff >> cosPow >> vertCount;
 
         //Считывание массива вершин очередного многоуогольника.
         std::vector<Point> vertices;
-        vertices.reserve(top_n);
-        for(int j = 0; j < top_n; ++j) {
+        vertices.reserve(vertCount);
+        for(int j = 0; j < vertCount; ++j) {
             float x, y, z;
             stream >> x >> y >> z;
             vertices.emplace_back(x, y, z);
@@ -329,7 +329,7 @@ void MainWindow::loadScene()
 
         //"Добавление" (т.е. изменение) очередного многоугольника.
         polygons.emplace_back(vertices, Rgb(r[0], g[0], b[0]),
-            Rgb(r[1], g[1], b[1]), ks, c_p_k);
+            Rgb(r[1], g[1], b[1]), reflCoeff, cosPow);
     }
 
     //Чтение источников света.
