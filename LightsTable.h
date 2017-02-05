@@ -14,6 +14,8 @@ class LightsTable: public   QAbstractTableModel
     Q_OBJECT
 
 public:
+    enum Column {XCoord, YCoord, ZCoord, Intensivity, ColumnsCount};
+
     LightsTable(const std::vector<SpotLight> &initialLights,
                QObject *parent = nullptr);
 
@@ -33,8 +35,6 @@ public:
     std::vector<SpotLight> lights() const;
 
 private:
-    enum Column {XCoord, YCoord, ZCoord, Intensivity, ColumnsCount};
-
     std::vector<SpotLight>  _lights;
 };
 

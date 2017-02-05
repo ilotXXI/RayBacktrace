@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>322</width>
-    <height>160</height>
+    <height>163</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Координаты</string>
+      <string>Координаты:</string>
      </property>
     </widget>
    </item>
@@ -37,7 +37,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="xSpin"/>
+      <widget class="QDoubleSpinBox" name="xSpin">
+       <property name="minimum">
+        <double>-100000.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>100000.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>10.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_3">
@@ -53,7 +63,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="ySpin"/>
+      <widget class="QDoubleSpinBox" name="ySpin">
+       <property name="minimum">
+        <double>-100000.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>100000.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>10.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_4">
@@ -69,7 +89,20 @@
       </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="zSpin"/>
+      <widget class="QDoubleSpinBox" name="zSpin">
+       <property name="minimum">
+        <double>-100000.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>100000.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>10.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>10.000000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -82,7 +115,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Интенсивность</string>
+      <string>Интенсивность:</string>
      </property>
     </widget>
    </item>
@@ -99,6 +132,18 @@
        <width>80</width>
        <height>0</height>
       </size>
+     </property>
+     <property name="minimum">
+      <double>0.010000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>255.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="value">
+      <double>255.000000000000000</double>
      </property>
     </widget>
    </item>

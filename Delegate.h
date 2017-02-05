@@ -2,6 +2,9 @@
 #define DELEGATE_H
 
 #include <QStyledItemDelegate>
+#include <QMap>
+
+class QDoubleSpinBox;
 
 class Delegate : public QStyledItemDelegate
 {
@@ -11,6 +14,7 @@ public:
     Delegate(QObject *parent = nullptr);
 
     void setDoubleRange(double min, double max);
+    void setColumnDoubleRange(int col, double min, double max);
     void setDoubleStep(double step);
 
     QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option,
@@ -21,9 +25,18 @@ public:
                       const QModelIndex &index) const override;
 
 private:
-    double  _doubleMin = 0.;
-    double  _doubleMax = 1.;
-    double  _doubleStep = 0.01;
+    struct DoubleRange
+    {
+        double  min;
+        double  max;
+    };
+
+    DoubleRange             _commonDblRange;
+    double                  _commonDblStep;
+    QMap<int, DoubleRange>  _doubleParams;
+
+    QDoubleSpinBox * doubleEditor(QWidget *parent,
+        const QModelIndex &index) const;
 };
 
 #endif // DELEGATE_H

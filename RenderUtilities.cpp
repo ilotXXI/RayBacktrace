@@ -48,6 +48,7 @@ static float Raise(float base, int power)
 
 static inline void Constrain(float &color)
 {
+    // TODO: range must be [0, 1].
     if (color < - EPSILON || color > 255.f)
         color = 255.f;
 }
