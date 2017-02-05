@@ -41,6 +41,8 @@ private:
     Scene                           _scene;
     QScopedPointer<Renderer>        _renderer;
 
+    static const RendererType       _defaultRendType = RendParallel;
+
     void readSettings();
     void writeSettings();
 

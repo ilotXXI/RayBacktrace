@@ -125,13 +125,13 @@ void MainWindow::readSettings()
     restoreGeometry(settings->value(GEOMETRY_SETTING_NAME).toByteArray());
 
     int rendType =
-        settings->value(REND_SETTING_NAME, RendSimple).toInt();
+        settings->value(REND_SETTING_NAME, _defaultRendType).toInt();
     if (rendType < 0 || RendTypesCount <= rendType) {
         QMessageBox::warning(this, tr("Чтение настроек"),
             tr("При чтении настроек обнаружен неизвестный \n"
                "тип отрисовщика. Установлен отрисовщик по \n"
                "умолчанию."));
-        rendType = RendSimple;
+        rendType = _defaultRendType;
     }
     setRenderer(static_cast<RendererType>(rendType));
 }
@@ -142,7 +142,7 @@ void MainWindow::writeSettings()
 
     settings->setValue(GEOMETRY_SETTING_NAME, saveGeometry());
 
-    RendererType rendType = RendSimple;
+    RendererType rendType = _defaultRendType;
     if (qobject_cast<SimpleRenderer *>(_renderer.data()) != nullptr) {
         rendType = RendSimple;
     } else if (qobject_cast<ParallelRenderer *>(_renderer.data()) != nullptr) {
