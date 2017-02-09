@@ -111,7 +111,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (_renderingIsRunning) {
         QMessageBox::warning(this, tr("Закрытие окна"),
-            tr("Невозможно закрыть окно во время рендеринга.\n"
+            tr("Невозможно закрыть окно во время отрисовки.\n"
                "Пожалуйста, дождитесь его окончания."));
         event->ignore();
     } else {
@@ -410,7 +410,7 @@ void MainWindow::render()
 {
     if (_renderer.isNull()) {
         QMessageBox::critical(this, tr("Ошибка отрисовки"),
-            tr("Алгоритм рендеринга не может запущен. "
+            tr("Отрисовка не может запущена. "
                "Попробуйте перезапустить программу."));
         return;
     }
