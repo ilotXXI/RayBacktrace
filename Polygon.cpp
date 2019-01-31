@@ -195,6 +195,8 @@ bool Polygon::pointIsInProjection(const Point &point,
             break;
         case PointIsOnSide:
             return true;
+        default:
+            break;
         }
 
         ++prepre;

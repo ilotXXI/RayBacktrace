@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <QtGlobal>
+
 #include "Rgb.h"
 
 // Provides a canvas (a 2D array of pixels).
@@ -41,7 +43,7 @@ inline const Rgb & Canvas::pixel(int x, int y) const
 
 inline void Canvas::setPixel(int x, int y, const Rgb &color)
 {
-    _ASSERT(0 <= x && x < int(_width) && 0 <= y && y < int(_height));
+    Q_ASSERT(0 <= x && x < int(_width) && 0 <= y && y < int(_height));
     _pixels[x][y] = color;
 }
 

@@ -236,7 +236,7 @@ void MainWindow::saveScene() const
     //Запись в файл кол-в многоугольников и источников света.
     const std::vector<Polygon> &polygons = _scene.polygons();
     const std::vector<SpotLight> &lights = _scene.lights();
-    stream << polygons.size() << lights.size();
+    stream << int(polygons.size()) << int(lights.size());
 
     //Запись в файл многоугольников.
     for (const auto &polygon:    polygons)

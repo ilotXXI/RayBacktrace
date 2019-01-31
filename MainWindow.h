@@ -32,7 +32,7 @@ private:
     enum RendererType {RendSimple, RendParallel, RendTypesCount};
 
     QScopedPointer<Ui::MainWindow>  _ui;
-    QScopedPointer<QProgressBar>    _progressBar = nullptr;
+    QScopedPointer<QProgressBar>    _progressBar;
 
     QScopedPointer<QThread>         _workThread;
     QElapsedTimer                   _timer;

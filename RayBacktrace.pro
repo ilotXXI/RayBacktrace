@@ -13,8 +13,8 @@ TEMPLATE = app
 
 # OpenMP support.
 msvc:QMAKE_CXXFLAGS += -openmp
-g++:QMAKE_CXXFLAGS += -fopenmp
-g++:QMAKE_CXXFLAGS += -openmp
+gcc:QMAKE_CXXFLAGS += -fopenmp
+gcc:LIBS += -lgomp
 
 SOURCES += main.cpp\
     MainWindow.cpp \

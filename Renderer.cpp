@@ -11,7 +11,8 @@ void Renderer::render(const Scene &scene, const QSize &size)
 {
     if (!size.isValid())
         return;
-    if (size.width() != _canvas.width() || size.height() != _canvas.height()) {
+    if (size.width() != int(_canvas.width()) ||
+            size.height() != int(_canvas.height())) {
         _canvas = Canvas(size.width(), size.height());
     } else {
         _canvas.clear();

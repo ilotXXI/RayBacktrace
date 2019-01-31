@@ -57,7 +57,7 @@ bool LightsTable::setData(const QModelIndex &index, const QVariant &value,
                          int role)
 {
     const size_t row = size_t(index.row());
-    if (row < 0 || _lights.size() <= row)
+    if (_lights.size() <= row)
         return false;
     if (data(index, role) == value)
         return false;
