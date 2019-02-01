@@ -24,14 +24,14 @@ void ParallelRenderer::performRendering(const Scene &scene, Canvas &canvas)
 {
     const auto pol = scene.polygons();
     const Polygon *polPtr = pol.data();
-    const int polCount = pol.size();
+    const int polCount = int(pol.size());
 
     const auto lights = scene.lights();
     const SpotLight *lightsPtr = lights.data();
-    const int lightsCount = lights.size();
+    const int lightsCount = int(lights.size());
 
-    const int halfWidth = canvas.width() / 2;
-    const int halfHeight = canvas.height() / 2;
+    const int halfWidth = int(canvas.width() / 2);
+    const int halfHeight = int(canvas.height() / 2);
     const float widthFloat = float(canvas.width());
 
     QAtomicInt counter(0);

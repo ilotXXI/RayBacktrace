@@ -142,12 +142,12 @@ inline void Polygon::setReflectionWeights(const Rgb &value)
 
 inline int Polygon::verticesCount() const
 {
-    return _vertices.size();
+    return int(_vertices.size());
 }
 
 inline Point Polygon::vertice(int index) const
 {
-    return _vertices[index];
+    return _vertices[size_t(index)];
 }
 
 #endif // POLYGON_H

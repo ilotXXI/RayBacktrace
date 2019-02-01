@@ -12,7 +12,7 @@ TARGET = RayBacktrace
 TEMPLATE = app
 
 # OpenMP support.
-msvc:QMAKE_CXXFLAGS += -openmp
+msvc:QMAKE_CXXFLAGS += -openmp /W3
 gcc:QMAKE_CXXFLAGS += -fopenmp
 gcc:LIBS += -lgomp
 

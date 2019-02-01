@@ -27,8 +27,8 @@ void SpotLight::Replace(float x1, float y1, float z1)
 void SpotLight::Rotate(float alpha, short axis)
 {
     float old, sinAlpha, cosAlpha;
-    sinAlpha = sin(alpha);
-    cosAlpha = cos(alpha);
+    sinAlpha = sinf(alpha);
+    cosAlpha = cosf(alpha);
     switch (axis)
     {
     case 0: //Поворот вокруг оси Ox.

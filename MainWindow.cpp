@@ -162,8 +162,8 @@ void MainWindow::setCanvas(const Canvas &canvas)
         return qRgb(rgb.red(), rgb.green(), rgb.blue());
     };
 
-    const int width = canvas.width();
-    const int height = canvas.height();
+    const int width = int(canvas.width());
+    const int height = int(canvas.height());
     QImage image(width, height, QImage::Format_RGB32);
 
     for (int x = 0; x < width; ++x) {
